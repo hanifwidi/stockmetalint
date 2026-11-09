@@ -1,0 +1,13 @@
+* text=auto eol=lf
+
+# CSV fixtures and examples are byte-exact inputs: never convert line endings.
+*.csv -text
+examples/** -text
+tests/fixtures/** -text
+
+# Synthetic media fixtures.
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.mp4 binary
+*.mov binary
