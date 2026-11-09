@@ -1,0 +1,43 @@
+name: Bug report
+description: Something StockMetaLint does wrong (false positive, false negative, crash, wrong exit code)
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please use **synthetic** data only. Never attach real contributor media, metadata or credentials.
+        Security problems: use private vulnerability reporting instead (see SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `stockmetalint --version`
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Environment
+      description: Output of `stockmetalint doctor`
+      render: text
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal synthetic CSV and command
+      description: The smallest CSV that reproduces the problem, and the exact command you ran.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual output and exit code
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour (with a source link if it concerns a platform rule)
+    validations:
+      required: true
