@@ -51,11 +51,28 @@ SCOPES = frozenset(
 )
 RULE_ID_RE = re.compile(r"^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+$")
 _RULE_KEYS = (
-    "rule_id", "title", "severity", "scope", "source_id", "source_url", "source_updated",
-    "verified_at", "verification", "description", "limit", "notes", "profiles", "fix_rule",
+    "rule_id",
+    "title",
+    "severity",
+    "scope",
+    "source_id",
+    "source_url",
+    "source_updated",
+    "verified_at",
+    "verification",
+    "description",
+    "limit",
+    "notes",
+    "profiles",
+    "fix_rule",
 )
 _SOURCE_KEYS = (
-    "title", "url", "page_updated", "page_updated_basis", "verification", "evidence_accessed",
+    "title",
+    "url",
+    "page_updated",
+    "page_updated_basis",
+    "verification",
+    "evidence_accessed",
     "evidence",
 )
 
@@ -189,7 +206,9 @@ class RuleRegistry:
         return "unverified"
 
 
-def _require(mapping: Mapping[str, Any], key: str, where: str, kind: type | tuple[type, ...]) -> Any:
+def _require(
+    mapping: Mapping[str, Any], key: str, where: str, kind: type | tuple[type, ...]
+) -> Any:
     if key not in mapping:
         raise RegistryError(f"{where}: missing key {key!r}")
     value = mapping[key]
@@ -256,7 +275,9 @@ def _parse_rule(entry: Any, filename: str, sources: Mapping[str, Source]) -> Rul
         raise RegistryError(f"{where}: unknown verification {verification!r}")
     verified_at = _opt_str(entry, "verified_at", where)
     if (verified_at is None) == (verification == "verified"):
-        raise RegistryError(f"{where}: verified_at must be set if and only if verification is 'verified'")
+        raise RegistryError(
+            f"{where}: verified_at must be set if and only if verification is 'verified'"
+        )
     source_id = _require(entry, "source_id", where, str)
     if source_id not in sources:
         raise RegistryError(f"{where}: unknown source_id {source_id!r}")
@@ -323,7 +344,9 @@ def load_registry(platform: str = "adobe-csv") -> RuleRegistry:
     header = _require(platform_data, "template_header", platform_file, list)
     required = _require(platform_data, "required_columns", platform_file, list)
     if not set(required) <= set(header) or len(set(header)) != len(header):
-        raise RegistryError(f"{platform_file}: required_columns must be a subset of template_header")
+        raise RegistryError(
+            f"{platform_file}: required_columns must be a subset of template_header"
+        )
     categories_block = _require(platform_data, "categories", platform_file, dict)
     raw_categories = _require(categories_block, "values", platform_file, dict)
     try:

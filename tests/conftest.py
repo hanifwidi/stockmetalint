@@ -49,8 +49,11 @@ def csv_bytes(
 def unique_rows(count: int) -> list[list[str]]:
     """*count* valid rows with distinct filenames, titles and keyword sets."""
     return [
-        make_row(f"img-{i:05d}.jpg", f"Synthetic test scene number {i}",
-                 f"kw{i}a, kw{i}b, kw{i}c, landscape, nature")
+        make_row(
+            f"img-{i:05d}.jpg",
+            f"Synthetic test scene number {i}",
+            f"kw{i}a, kw{i}b, kw{i}c, landscape, nature",
+        )
         for i in range(count)
     ]
 

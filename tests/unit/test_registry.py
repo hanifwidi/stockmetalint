@@ -39,12 +39,19 @@ def test_adobe_rules_cite_adobe_sources_and_are_labelled_unverified() -> None:
     assert registry.verification_label == "unverified"
 
 
-@pytest.mark.parametrize(("rule_id", "limit"), [
-    ("ADOBE-CSV-TITLE-LENGTH", 70), ("ADOBE-CSV-FILENAME-LENGTH", 30),
-    ("ADOBE-CSV-KEYWORDS-MAX", 50), ("ADOBE-GUIDANCE-KEYWORDS-49", 49),
-    ("ADOBE-CSV-ROW-LIMIT", 5000), ("ADOBE-CSV-FILE-SIZE", 1048576),
-    ("ADOBE-CSV-FILE-SIZE-DECIMAL", 1000000), ("ADOBE-CSV-RELEASE-NAME-LENGTH", 30),
-])
+@pytest.mark.parametrize(
+    ("rule_id", "limit"),
+    [
+        ("ADOBE-CSV-TITLE-LENGTH", 70),
+        ("ADOBE-CSV-FILENAME-LENGTH", 30),
+        ("ADOBE-CSV-KEYWORDS-MAX", 50),
+        ("ADOBE-GUIDANCE-KEYWORDS-49", 49),
+        ("ADOBE-CSV-ROW-LIMIT", 5000),
+        ("ADOBE-CSV-FILE-SIZE", 1048576),
+        ("ADOBE-CSV-FILE-SIZE-DECIMAL", 1000000),
+        ("ADOBE-CSV-RELEASE-NAME-LENGTH", 30),
+    ],
+)
 def test_source_backed_limits(rule_id: str, limit: int) -> None:
     assert load_registry().int_limit(rule_id) == limit
 
@@ -86,25 +93,28 @@ def _mutate(monkeypatch: pytest.MonkeyPatch, mutate: Any) -> None:
     reg.load_registry.cache_clear()
 
 
-@pytest.mark.parametrize("mutation", [
-    lambda d: d["rules"][0].update(severity="fatal"),
-    lambda d: d["rules"][0].update(scope="nowhere"),
-    lambda d: d["rules"][0].update(verification="trust-me"),
-    lambda d: d["rules"][0].update(verified_at="2026-11-09"),          # without status 'verified'
-    lambda d: d["rules"][0].update(source_url="https://example.com/"),  # mismatching source
-    lambda d: d["rules"][0].update(source_updated="1999-01-01"),
-    lambda d: d["rules"][0].update(limit=True),
-    lambda d: d["rules"][0].update(profiles=["strict"]),
-    lambda d: d["rules"][0].update(rule_id="lowercase-id"),
-    lambda d: d["rules"][0].pop("notes"),
-    lambda d: d["rules"].append(dict(d["rules"][0])),                  # duplicate ID
-    lambda d: d["sources"]["adobe-csv-requirements"].update(verification="??"),
-    lambda d: d.update(required_columns=["Nope"]),
-    lambda d: d.update(platform="other"),
-    lambda d: d.update(registry_format=2),
-    lambda d: d["categories"]["values"].update({"x": "Bad"}),
-    lambda d: d.update(profiles={"standard": "only one"}),
-])
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        lambda d: d["rules"][0].update(severity="fatal"),
+        lambda d: d["rules"][0].update(scope="nowhere"),
+        lambda d: d["rules"][0].update(verification="trust-me"),
+        lambda d: d["rules"][0].update(verified_at="2026-11-09"),  # without status 'verified'
+        lambda d: d["rules"][0].update(source_url="https://example.com/"),  # mismatching source
+        lambda d: d["rules"][0].update(source_updated="1999-01-01"),
+        lambda d: d["rules"][0].update(limit=True),
+        lambda d: d["rules"][0].update(profiles=["strict"]),
+        lambda d: d["rules"][0].update(rule_id="lowercase-id"),
+        lambda d: d["rules"][0].pop("notes"),
+        lambda d: d["rules"].append(dict(d["rules"][0])),  # duplicate ID
+        lambda d: d["sources"]["adobe-csv-requirements"].update(verification="??"),
+        lambda d: d.update(required_columns=["Nope"]),
+        lambda d: d.update(platform="other"),
+        lambda d: d.update(registry_format=2),
+        lambda d: d["categories"]["values"].update({"x": "Bad"}),
+        lambda d: d.update(profiles={"standard": "only one"}),
+    ],
+)
 def test_malformed_registry_is_rejected(monkeypatch: pytest.MonkeyPatch, mutation: Any) -> None:
     _mutate(monkeypatch, mutation)
     try:
@@ -122,6 +132,15 @@ def test_unloadable_registry_file(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_raw_json_has_brief_mandated_fields() -> None:
     for name in ("adobe_csv_2026_06.json", "core.json"):
         for rule in _raw(name)["rules"]:
-            for key in ("rule_id", "source_url", "source_updated", "verified_at", "scope",
-                        "severity", "description", "limit", "notes"):
+            for key in (
+                "rule_id",
+                "source_url",
+                "source_updated",
+                "verified_at",
+                "scope",
+                "severity",
+                "description",
+                "limit",
+                "notes",
+            ):
                 assert key in rule

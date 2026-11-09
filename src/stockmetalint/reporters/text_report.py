@@ -14,8 +14,10 @@ from stockmetalint.domain import Diagnostic, Report, Severity
 from stockmetalint.textutil import escape_for_terminal
 
 _COLORS = {Severity.ERROR: "31", Severity.WARNING: "33", Severity.INFO: "36"}
-DISCLAIMER = ("Unofficial preflight check, not affiliated with Adobe. A clean result does not "
-              "guarantee upload acceptance, approval or ranking.")
+DISCLAIMER = (
+    "Unofficial preflight check, not affiliated with Adobe. A clean result does not "
+    "guarantee upload acceptance, approval or ranking."
+)
 
 
 def should_use_color(stream: TextIO, mode: str) -> bool:

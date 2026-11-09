@@ -87,8 +87,9 @@ def lint_bytes(
 ) -> Report:
     """Lint CSV content already in memory (no file system access unless assets are given)."""
     opts = options or LintOptions()
-    return analyze_bytes(data, source_name=source_name, options=opts,
-                         registry=validate_options(opts)).report
+    return analyze_bytes(
+        data, source_name=source_name, options=opts, registry=validate_options(opts)
+    ).report
 
 
 def analyze_path(path: Path | str, options: LintOptions | None = None) -> Analysis:
@@ -96,8 +97,12 @@ def analyze_path(path: Path | str, options: LintOptions | None = None) -> Analys
     registry = validate_options(opts)
     source = Path(path)
     data = read_input_bytes(source, opts.max_input_bytes)
-    return analyze_bytes(data, source_name=display_name(source, show_paths=opts.show_paths),
-                         options=opts, registry=registry)
+    return analyze_bytes(
+        data,
+        source_name=display_name(source, show_paths=opts.show_paths),
+        options=opts,
+        registry=registry,
+    )
 
 
 def analyze_bytes(
@@ -111,8 +116,11 @@ def analyze_bytes(
     rows: list[RowView] = []
     if not parsed.unreadable:
         if parsed.header is None:
-            ctx.emit("ADOBE-CSV-HEADER-ABSENT", "No header row: the file contains only blank records.",
-                     suggestion="Add the template header: " + ",".join(registry.template_header))
+            ctx.emit(
+                "ADOBE-CSV-HEADER-ABSENT",
+                "No header row: the file contains only blank records.",
+                suggestion="Add the template header: " + ",".join(registry.template_header),
+            )
         else:
             mapping = adobe.map_header(ctx, parsed.header, parsed.header_line or 1)
         if mapping is not None:

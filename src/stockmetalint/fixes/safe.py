@@ -27,13 +27,13 @@ from stockmetalint.validators.context import ColumnMap
 
 FIX_RULES: dict[str, str] = {
     "trim-whitespace": "Strip leading/trailing whitespace from Title, each keyword, Category and "
-                       "Releases. Filename is never modified.",
+    "Releases. Filename is never modified.",
     "drop-empty-keywords": "Remove empty keyword items such as 'sky,,sun' or a trailing comma.",
     "dedupe-keywords": "Remove repeated keywords (case/whitespace-insensitive), keeping the first "
-                       "occurrence and the original order.",
+    "occurrence and the original order.",
     "nfc": "Normalize Title and Keywords to Unicode NFC (canonically equivalent text).",
     "canonical-header": "Rename header cells that differ from the template only by case, spacing, "
-                        "plural or small typo to the exact template spelling.",
+    "plural or small typo to the exact template spelling.",
 }
 DEFAULT_FIX_RULES: tuple[str, ...] = ("trim-whitespace", "drop-empty-keywords")
 FORMULA_POLICIES = ("refuse", "escape")
@@ -47,7 +47,9 @@ def parse_fix_rules(spec: str | None) -> tuple[str, ...]:
         raise ConfigError("--fix-rules needs at least one rule name")
     unknown = [n for n in names if n not in FIX_RULES]
     if unknown:
-        raise ConfigError(f"unknown fix rule(s): {', '.join(unknown)}; available: {', '.join(FIX_RULES)}")
+        raise ConfigError(
+            f"unknown fix rule(s): {', '.join(unknown)}; available: {', '.join(FIX_RULES)}"
+        )
     return tuple(n for n in FIX_RULES if n in names)  # canonical order
 
 
@@ -61,8 +63,14 @@ class Change:
     after: str
 
     def to_dict(self) -> dict[str, Any]:
-        return {"line": self.line, "row": self.row, "column": self.column, "rule": self.rule,
-                "before": self.before, "after": self.after}
+        return {
+            "line": self.line,
+            "row": self.row,
+            "column": self.column,
+            "rule": self.rule,
+            "before": self.before,
+            "after": self.after,
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -98,8 +106,10 @@ class FixPlan:
 
     def _cells(self) -> list[tuple[int, int | None, list[str]]]:
         rows: list[tuple[int, int | None, list[str]]] = [(self.header_line, None, self.header)]
-        rows += [(line, row, cells) for (line, row), cells in zip(self.positions, self.records,
-                                                                  strict=True)]
+        rows += [
+            (line, row, cells)
+            for (line, row), cells in zip(self.positions, self.records, strict=True)
+        ]
         return rows
 
     def scan_formulas(self) -> None:
@@ -108,7 +118,9 @@ class FixPlan:
             for index, value in enumerate(cells):
                 prefix = formula_prefix(value)
                 if prefix is not None:
-                    self.formula_cells.append(FormulaCell(line, row, self.column_name(index), prefix))
+                    self.formula_cells.append(
+                        FormulaCell(line, row, self.column_name(index), prefix)
+                    )
 
     def column_name(self, index: int) -> str:
         return self.header[index] if index < len(self.header) else f"field {index + 1}"
@@ -119,8 +131,16 @@ class FixPlan:
             for index, value in enumerate(cells):
                 if formula_prefix(value) is not None:
                     cells[index] = "'" + value
-                    self.changes.append(Change(line, row, self.column_name(index), "formula-escape",
-                                               value, cells[index]))
+                    self.changes.append(
+                        Change(
+                            line,
+                            row,
+                            self.column_name(index),
+                            "formula-escape",
+                            value,
+                            cells[index],
+                        )
+                    )
 
 
 def _join_trimmed(items: list[str], separator: str) -> str:
@@ -154,13 +174,18 @@ def _keyword_steps(rules: tuple[str, ...]) -> list[tuple[str, Callable[[list[str
     def nfc(items: list[str]) -> list[str]:
         return [unicodedata.normalize("NFC", i) for i in items]
 
-    table = {"trim-whitespace": trim, "drop-empty-keywords": drop_empty, "dedupe-keywords": dedupe,
-             "nfc": nfc}
+    table = {
+        "trim-whitespace": trim,
+        "drop-empty-keywords": drop_empty,
+        "dedupe-keywords": dedupe,
+        "nfc": nfc,
+    }
     return [(name, table[name]) for name in rules if name in table]
 
 
-def plan_fixes(parsed: ParsedCsv, mapping: ColumnMap, rules: Iterable[str],
-               template: tuple[str, ...]) -> FixPlan:
+def plan_fixes(
+    parsed: ParsedCsv, mapping: ColumnMap, rules: Iterable[str], template: tuple[str, ...]
+) -> FixPlan:
     rules = tuple(rules)
     if parsed.header is None:
         raise ConfigError("cannot plan fixes without a header row")
@@ -168,11 +193,19 @@ def plan_fixes(parsed: ParsedCsv, mapping: ColumnMap, rules: Iterable[str],
     plan = FixPlan(rules, header, parsed.header_line or 1, [], [], parsed.newline, parsed.had_bom)
 
     if "canonical-header" in rules:
-        for index, canonical in enumerate(canonical_header_names(parsed.header, template)):
-            if canonical and header[index] != canonical and mapping.get(canonical) == index:
-                plan.changes.append(Change(plan.header_line, None, header[index], "canonical-header",
-                                           header[index], canonical))
-                header[index] = canonical
+        for position, canonical in enumerate(canonical_header_names(parsed.header, template)):
+            if canonical and header[position] != canonical and mapping.get(canonical) == position:
+                plan.changes.append(
+                    Change(
+                        plan.header_line,
+                        None,
+                        header[position],
+                        "canonical-header",
+                        header[position],
+                        canonical,
+                    )
+                )
+                header[position] = canonical
 
     steps = _keyword_steps(rules)
     for record in parsed.records:
@@ -188,22 +221,31 @@ def plan_fixes(parsed: ParsedCsv, mapping: ColumnMap, rules: Iterable[str],
             if index is None:
                 continue
             if "trim-whitespace" in rules and fields[index] != fields[index].strip():
-                changes.append(Change(record.line, record.row, column, "trim-whitespace",
-                                      fields[index], fields[index].strip()))
+                changes.append(
+                    Change(
+                        record.line,
+                        record.row,
+                        column,
+                        "trim-whitespace",
+                        fields[index],
+                        fields[index].strip(),
+                    )
+                )
                 fields[index] = fields[index].strip()
             if column == "Title" and "nfc" in rules:
                 normalized = unicodedata.normalize("NFC", fields[index])
                 if normalized != fields[index]:
-                    changes.append(Change(record.line, record.row, column, "nfc", fields[index],
-                                          normalized))
+                    changes.append(
+                        Change(record.line, record.row, column, "nfc", fields[index], normalized)
+                    )
                     fields[index] = normalized
 
-        index = mapping.get("Keywords")
-        if index is None or not fields[index]:
+        kw_index = mapping.get("Keywords")
+        if kw_index is None or not fields[kw_index]:
             continue
-        separator = ", " if ", " in fields[index] else ","
-        items = fields[index].split(",")
-        current = fields[index]
+        separator = ", " if ", " in fields[kw_index] else ","
+        items = fields[kw_index].split(",")
+        current = fields[kw_index]
         trimmed = False
         for name, step in steps:
             items = step(items)
@@ -212,7 +254,7 @@ def plan_fixes(parsed: ParsedCsv, mapping: ColumnMap, rules: Iterable[str],
             if rendered != current:
                 changes.append(Change(record.line, record.row, "Keywords", name, current, rendered))
                 current = rendered
-        fields[index] = current
+        fields[kw_index] = current
 
     plan.scan_formulas()
     return plan

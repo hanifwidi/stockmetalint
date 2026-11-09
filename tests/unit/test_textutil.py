@@ -12,10 +12,10 @@ from stockmetalint import textutil as t
     [
         ("abc", 3, 3),
         ("Pasar tradisional di pagi hari", 30, 30),  # Indonesian
-        ("café", 4, 4),                          # precomposed é
-        ("café", 5, 5),                         # e + combining acute (NFD)
+        ("café", 4, 4),  # precomposed é
+        ("café", 5, 5),  # e + combining acute (NFD)
         ("富士山の朝焼け", 7, 7),  # CJK
-        ("sunset \U0001f305", 8, 9),                  # emoji is astral: 2 UTF-16 units
+        ("sunset \U0001f305", 8, 9),  # emoji is astral: 2 UTF-16 units
         ("\U0001f468‍\U0001f469‍\U0001f467", 5, 8),  # ZWJ family sequence
     ],
 )
@@ -42,8 +42,17 @@ def test_keyword_keys() -> None:
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        ("=SUM(A1)", "="), ("+1", "+"), ("-2", "-"), ("@cmd", "@"), ("\tx", "\t"), ("\rx", "\r"),
-        ("  =evil", "="), ("normal", None), ("", None), ("e=mc2", None), ("a-b", None),
+        ("=SUM(A1)", "="),
+        ("+1", "+"),
+        ("-2", "-"),
+        ("@cmd", "@"),
+        ("\tx", "\t"),
+        ("\rx", "\r"),
+        ("  =evil", "="),
+        ("normal", None),
+        ("", None),
+        ("e=mc2", None),
+        ("a-b", None),
     ],
 )
 def test_formula_prefix(text: str, expected: str | None) -> None:

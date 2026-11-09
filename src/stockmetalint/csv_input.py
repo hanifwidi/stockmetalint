@@ -151,49 +151,69 @@ def parse_csv_bytes(data: bytes, emit: Emit) -> ParsedCsv:
     """Decode and parse *data*, emitting structural/encoding diagnostics via *emit*."""
     size = len(data)
     if size == 0:
-        emit("CSV-FILE-EMPTY", "The file is empty (0 bytes).",
-             suggestion="Export the spreadsheet again as 'CSV UTF-8 (Comma delimited)'.")
+        emit(
+            "CSV-FILE-EMPTY",
+            "The file is empty (0 bytes).",
+            suggestion="Export the spreadsheet again as 'CSV UTF-8 (Comma delimited)'.",
+        )
         return _unreadable(size)
 
     for bom, name in _TEXT_BOMS:
         if data.startswith(bom):
-            emit("ADOBE-CSV-ENCODING-UTF8", f"The file starts with a {name} byte-order mark; it is "
-                 "not UTF-8.", line=1,
-                 suggestion="Save as 'CSV UTF-8 (Comma delimited)' (Excel) or UTF-8 (other editors).")
+            emit(
+                "ADOBE-CSV-ENCODING-UTF8",
+                f"The file starts with a {name} byte-order mark; it is not UTF-8.",
+                line=1,
+                suggestion="Save as 'CSV UTF-8 (Comma delimited)' (Excel) or UTF-8 (other editors).",
+            )
             return _unreadable(size)
     for signature, description in _BINARY_SIGNATURES:
         if data.startswith(signature):
-            emit("CSV-FILE-BINARY", f"The file content is {description}, not CSV text.",
-                 suggestion="Export the sheet as 'CSV UTF-8 (Comma delimited)' and lint that file.")
+            emit(
+                "CSV-FILE-BINARY",
+                f"The file content is {description}, not CSV text.",
+                suggestion="Export the sheet as 'CSV UTF-8 (Comma delimited)' and lint that file.",
+            )
             return _unreadable(size)
     nul = data.find(b"\x00")
     if nul != -1:
-        emit("CSV-NUL-BYTE", f"NUL byte at byte offset {nul} (line {line_of_offset(data, nul)}); "
-             "the file is probably UTF-16 or binary.", line=line_of_offset(data, nul),
-             suggestion="Save the file as UTF-8 CSV.")
+        emit(
+            "CSV-NUL-BYTE",
+            f"NUL byte at byte offset {nul} (line {line_of_offset(data, nul)}); "
+            "the file is probably UTF-16 or binary.",
+            line=line_of_offset(data, nul),
+            suggestion="Save the file as UTF-8 CSV.",
+        )
         return _unreadable(size)
 
     had_bom = data.startswith(UTF8_BOM)
-    body = data[len(UTF8_BOM):] if had_bom else data
+    body = data[len(UTF8_BOM) :] if had_bom else data
     if had_bom:
-        emit("CSV-ENCODING-BOM", "UTF-8 byte-order mark found and accepted (Excel 'CSV UTF-8' "
-             "writes one).", line=1)
+        emit(
+            "CSV-ENCODING-BOM",
+            "UTF-8 byte-order mark found and accepted (Excel 'CSV UTF-8' writes one).",
+            line=1,
+        )
     try:
         text = body.decode("utf-8")
     except UnicodeDecodeError:
         for offset in invalid_utf8_offsets(body):
             absolute = offset + (len(UTF8_BOM) if had_bom else 0)
             line = line_of_offset(data, absolute)
-            emit("ADOBE-CSV-ENCODING-UTF8",
-                 f"Invalid UTF-8 byte 0x{data[absolute]:02X} at byte offset {absolute} (line {line}).",
-                 line=line,
-                 suggestion="Re-save as 'CSV UTF-8 (Comma delimited)'; legacy encodings such as "
-                            "Windows-1252 are not UTF-8.")
+            emit(
+                "ADOBE-CSV-ENCODING-UTF8",
+                f"Invalid UTF-8 byte 0x{data[absolute]:02X} at byte offset {absolute} (line {line}).",
+                line=line,
+                suggestion="Re-save as 'CSV UTF-8 (Comma delimited)'; legacy encodings such as "
+                "Windows-1252 are not UTF-8.",
+            )
         return _unreadable(size, had_bom)
 
     if not text.strip():
-        emit("CSV-FILE-EMPTY", "The file contains only whitespace"
-             + (" and a byte-order mark." if had_bom else "."))
+        emit(
+            "CSV-FILE-EMPTY",
+            "The file contains only whitespace" + (" and a byte-order mark." if had_bom else "."),
+        )
         return _unreadable(size, had_bom)
 
     return _parse_text(text, size, had_bom, emit)
@@ -214,17 +234,28 @@ def _parse_text(text: str, size: int, had_bom: bool, emit: Emit) -> ParsedCsv:
         except StopIteration:
             break
         except csv.Error as exc:
-            where = (f"starting at line {start_line}" if reader.line_num == start_line
-                     else f"starting at line {start_line} (parser stopped at line {reader.line_num})")
-            emit("CSV-MALFORMED", f"Malformed CSV record {where}: {exc}.", line=start_line,
-                 suggestion="Check for an unclosed double quote or text after a closing quote. "
-                            "Quotes inside a quoted cell must be doubled (\"\").")
+            where = (
+                f"starting at line {start_line}"
+                if reader.line_num == start_line
+                else f"starting at line {start_line} (parser stopped at line {reader.line_num})"
+            )
+            emit(
+                "CSV-MALFORMED",
+                f"Malformed CSV record {where}: {exc}.",
+                line=start_line,
+                suggestion="Check for an unclosed double quote or text after a closing quote. "
+                'Quotes inside a quoted cell must be doubled ("").',
+            )
             parse_stopped = True
             break
         if not fields or all(not f.strip() for f in fields):
             if header is None:
-                emit("CSV-BLANK-ROW", "Blank record before the header row.", line=start_line,
-                     suggestion="The header must be the first line of the file.")
+                emit(
+                    "CSV-BLANK-ROW",
+                    "Blank record before the header row.",
+                    line=start_line,
+                    suggestion="The header must be the first line of the file.",
+                )
             else:
                 pending_blank.append((start_line, bool(fields)))
             continue
@@ -233,8 +264,12 @@ def _parse_text(text: str, size: int, had_bom: bool, emit: Emit) -> ParsedCsv:
             header_line = start_line
             continue
         for blank_line, _ in pending_blank:
-            emit("CSV-BLANK-ROW", "Blank or all-empty record between data rows (skipped).",
-                 line=blank_line, suggestion="Delete the empty line.")
+            emit(
+                "CSV-BLANK-ROW",
+                "Blank or all-empty record between data rows (skipped).",
+                line=blank_line,
+                suggestion="Delete the empty line.",
+            )
         pending_blank.clear()
         row_index += 1
         records.append(CsvRecord(row_index, start_line, reader.line_num, tuple(fields)))
@@ -242,9 +277,13 @@ def _parse_text(text: str, size: int, had_bom: bool, emit: Emit) -> ParsedCsv:
     # Trailing truly-blank lines are harmless; trailing ",,,," records are not.
     for blank_line, had_fields in pending_blank:
         if had_fields:
-            emit("CSV-BLANK-ROW", "All-empty record at the end of the file (for example ',,,,' "
-                 "exported from formatted spreadsheet rows).", line=blank_line,
-                 suggestion="Delete the empty rows in the spreadsheet before exporting.")
+            emit(
+                "CSV-BLANK-ROW",
+                "All-empty record at the end of the file (for example ',,,,' "
+                "exported from formatted spreadsheet rows).",
+                line=blank_line,
+                suggestion="Delete the empty rows in the spreadsheet before exporting.",
+            )
     return ParsedCsv(
         size_bytes=size,
         had_bom=had_bom,

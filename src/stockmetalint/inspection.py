@@ -25,10 +25,20 @@ HEAD_BYTES = 1024
 FFPROBE_TIMEOUT_SECONDS = 30
 
 EXTENSION_KINDS: dict[str, tuple[str, ...]] = {
-    ".jpg": ("jpeg",), ".jpeg": ("jpeg",), ".png": ("png",), ".gif": ("gif",),
-    ".tif": ("tiff",), ".tiff": ("tiff",), ".webp": ("webp",), ".psd": ("psd",),
-    ".eps": ("eps",), ".ai": ("pdf", "eps"), ".pdf": ("pdf",), ".svg": ("svg",),
-    ".mp4": ("isobmff",), ".mov": ("quicktime", "isobmff"),
+    ".jpg": ("jpeg",),
+    ".jpeg": ("jpeg",),
+    ".png": ("png",),
+    ".gif": ("gif",),
+    ".tif": ("tiff",),
+    ".tiff": ("tiff",),
+    ".webp": ("webp",),
+    ".psd": ("psd",),
+    ".eps": ("eps",),
+    ".ai": ("pdf", "eps"),
+    ".pdf": ("pdf",),
+    ".svg": ("svg",),
+    ".mp4": ("isobmff",),
+    ".mov": ("quicktime", "isobmff"),
 }
 _QUICKTIME_ATOMS = (b"moov", b"mdat", b"wide", b"free", b"skip", b"pnot")
 VIDEO_EXTENSIONS = frozenset({".mp4", ".mov"})
@@ -66,7 +76,7 @@ def detect_kind(head: bytes) -> str | None:
 def load_pillow() -> ModuleType | None:
     """Return ``PIL.Image`` if the optional ``images`` extra is installed."""
     try:
-        from PIL import Image  # noqa: PLC0415 - optional dependency
+        from PIL import Image
     except ImportError:
         return None
     return Image
@@ -86,28 +96,41 @@ def inspect_assets(
     images_unverified = 0
     videos_unverified = 0
     for row, entry in matched:
-        loc: dict[str, Any] = {"line": row.line, "row": row.row, "column": "Filename",
-                               "filename": entry.name}
+        loc: dict[str, Any] = {
+            "line": row.line,
+            "row": row.row,
+            "column": "Filename",
+            "filename": entry.name,
+        }
         ext = PurePath(entry.name).suffix.lower()
         kinds = EXTENSION_KINDS.get(ext)
         if kinds is None:
-            ctx.emit("ASSET-UNSUPPORTED-TYPE",
-                     f'"{entry.relpath}": extension "{ext or "(none)"}" is not inspectable; matched by '
-                     "name only.", **loc)
+            ctx.emit(
+                "ASSET-UNSUPPORTED-TYPE",
+                f'"{entry.relpath}": extension "{ext or "(none)"}" is not inspectable; matched by '
+                "name only.",
+                **loc,
+            )
             continue
         try:
             with entry.path.open("rb") as handle:
                 head = handle.read(HEAD_BYTES)
         except OSError as exc:
-            ctx.emit("ASSET-INSPECT-INCONCLUSIVE",
-                     f'"{entry.relpath}" could not be read for inspection: {exc.strerror or exc}.', **loc)
+            ctx.emit(
+                "ASSET-INSPECT-INCONCLUSIVE",
+                f'"{entry.relpath}" could not be read for inspection: {exc.strerror or exc}.',
+                **loc,
+            )
             continue
         detected = detect_kind(head)
         if detected not in kinds:
-            ctx.emit("ASSET-SIGNATURE-MISMATCH",
-                     f'"{entry.relpath}" has extension {ext} but its content looks like '
-                     f"{detected.upper() if detected else 'unrecognized data'}.", **loc,
-                     suggestion="Re-export the file in the format its extension states.")
+            ctx.emit(
+                "ASSET-SIGNATURE-MISMATCH",
+                f'"{entry.relpath}" has extension {ext} but its content looks like '
+                f"{detected.upper() if detected else 'unrecognized data'}.",
+                **loc,
+                suggestion="Re-export the file in the format its extension states.",
+            )
             continue
         if ext in DECODABLE_EXTENSIONS:
             if detected == "jpeg":
@@ -123,22 +146,30 @@ def inspect_assets(
                 _probe_video(ctx, entry, loc, ffprobe)
 
     if images_unverified:
-        ctx.emit("ASSET-INSPECT-INCONCLUSIVE",
-                 f"{images_unverified} image file(s) were not decode-checked because Pillow is not "
-                 "installed.",
-                 suggestion="pip install 'stockmetalint[images]' to enable image decode checks.")
+        ctx.emit(
+            "ASSET-INSPECT-INCONCLUSIVE",
+            f"{images_unverified} image file(s) were not decode-checked because Pillow is not "
+            "installed.",
+            suggestion="pip install 'stockmetalint[images]' to enable image decode checks.",
+        )
     if videos_unverified:
-        ctx.emit("ASSET-INSPECT-INCONCLUSIVE",
-                 f"{videos_unverified} video file(s) were not probed because ffprobe was not found on "
-                 "PATH.", suggestion="Install FFmpeg (which provides ffprobe) to enable video checks.")
+        ctx.emit(
+            "ASSET-INSPECT-INCONCLUSIVE",
+            f"{videos_unverified} video file(s) were not probed because ffprobe was not found on "
+            "PATH.",
+            suggestion="Install FFmpeg (which provides ffprobe) to enable video checks.",
+        )
 
 
 def _check_jpeg_size(ctx: LintContext, entry: AssetEntry, loc: dict[str, Any]) -> None:
     limit = ctx.registry.int_limit("ADOBE-MEDIA-IMAGE-FILE-SIZE")
     if entry.size is not None and entry.size > limit:
-        ctx.emit("ADOBE-MEDIA-IMAGE-FILE-SIZE",
-                 f'"{entry.relpath}" is {entry.size:,} bytes; the photo guidance limit is {limit:,} bytes.',
-                 **loc, suggestion="Export with higher JPEG compression or smaller dimensions.")
+        ctx.emit(
+            "ADOBE-MEDIA-IMAGE-FILE-SIZE",
+            f'"{entry.relpath}" is {entry.size:,} bytes; the photo guidance limit is {limit:,} bytes.',
+            **loc,
+            suggestion="Export with higher JPEG compression or smaller dimensions.",
+        )
 
 
 def _check_image(
@@ -156,29 +187,45 @@ def _check_image(
                     img.draft("RGB", (max(1, width // 8), max(1, height // 8)))
                 img.load()
         except bomb_error:
-            ctx.emit("ASSET-INSPECT-INCONCLUSIVE",
-                     f'"{entry.relpath}" exceeds Pillow\'s decompression-bomb safety limit; not decoded.',
-                     **loc)
+            ctx.emit(
+                "ASSET-INSPECT-INCONCLUSIVE",
+                f'"{entry.relpath}" exceeds Pillow\'s decompression-bomb safety limit; not decoded.',
+                **loc,
+            )
             return
         except Exception as exc:  # noqa: BLE001 - Pillow raises many exception types for bad data
-            ctx.emit("ASSET-DECODE-FAILED",
-                     f'"{entry.relpath}" could not be decoded: {type(exc).__name__}: {exc}', **loc,
-                     suggestion="Re-export the image; the file is corrupt or truncated.")
+            ctx.emit(
+                "ASSET-DECODE-FAILED",
+                f'"{entry.relpath}" could not be decoded: {type(exc).__name__}: {exc}',
+                **loc,
+                suggestion="Re-export the image; the file is corrupt or truncated.",
+            )
             return
     if is_jpeg:
         low, high = ctx.registry.range_limit("ADOBE-MEDIA-IMAGE-MEGAPIXELS")
         megapixels = width * height / 1_000_000
         if not low <= megapixels <= high:
-            ctx.emit("ADOBE-MEDIA-IMAGE-MEGAPIXELS",
-                     f'"{entry.relpath}" is {width}x{height} = {megapixels:.2f} MP; the photo guidance '
-                     f"range is {low:g}-{high:g} MP.", **loc,
-                     suggestion="Check the photo requirements; do not upscale images artificially.")
+            ctx.emit(
+                "ADOBE-MEDIA-IMAGE-MEGAPIXELS",
+                f'"{entry.relpath}" is {width}x{height} = {megapixels:.2f} MP; the photo guidance '
+                f"range is {low:g}-{high:g} MP.",
+                **loc,
+                suggestion="Check the photo requirements; do not upscale images artificially.",
+            )
 
 
 def _probe_video(ctx: LintContext, entry: AssetEntry, loc: dict[str, Any], ffprobe: str) -> None:
     command = [
-        ffprobe, "-v", "error", "-protocol_whitelist", "file",
-        "-print_format", "json", "-show_format", "-show_streams", os.fspath(entry.path),
+        ffprobe,
+        "-v",
+        "error",
+        "-protocol_whitelist",
+        "file",
+        "-print_format",
+        "json",
+        "-show_format",
+        "-show_streams",
+        os.fspath(entry.path),
     ]
     try:
         # Fixed argument list, no shell; the path is absolute so it cannot be parsed as an option.
@@ -186,48 +233,77 @@ def _probe_video(ctx: LintContext, entry: AssetEntry, loc: dict[str, Any], ffpro
             command, capture_output=True, timeout=FFPROBE_TIMEOUT_SECONDS, check=False
         )
     except subprocess.TimeoutExpired:
-        ctx.emit("ASSET-INSPECT-INCONCLUSIVE",
-                 f'ffprobe timed out after {FFPROBE_TIMEOUT_SECONDS}s on "{entry.relpath}".', **loc)
+        ctx.emit(
+            "ASSET-INSPECT-INCONCLUSIVE",
+            f'ffprobe timed out after {FFPROBE_TIMEOUT_SECONDS}s on "{entry.relpath}".',
+            **loc,
+        )
         return
     except OSError as exc:
-        ctx.emit("ASSET-INSPECT-INCONCLUSIVE", f"ffprobe could not be started: {exc.strerror or exc}.",
-                 **loc)
+        ctx.emit(
+            "ASSET-INSPECT-INCONCLUSIVE",
+            f"ffprobe could not be started: {exc.strerror or exc}.",
+            **loc,
+        )
         return
     stderr = proc.stderr.decode("utf-8", "replace").replace(os.fspath(entry.path), entry.relpath)
     if proc.returncode != 0:
-        first = stderr.strip().splitlines()[0] if stderr.strip() else f"exit status {proc.returncode}"
-        ctx.emit("ASSET-VIDEO-UNREADABLE", f'ffprobe could not read "{entry.relpath}": {first}', **loc,
-                 suggestion="Re-export the video as MP4 or MOV.")
+        first = (
+            stderr.strip().splitlines()[0] if stderr.strip() else f"exit status {proc.returncode}"
+        )
+        ctx.emit(
+            "ASSET-VIDEO-UNREADABLE",
+            f'ffprobe could not read "{entry.relpath}": {first}',
+            **loc,
+            suggestion="Re-export the video as MP4 or MOV.",
+        )
         return
     try:
         data = json.loads(proc.stdout.decode("utf-8", "replace"))
     except ValueError:
-        ctx.emit("ASSET-INSPECT-INCONCLUSIVE", f'ffprobe returned unparsable output for "{entry.relpath}".',
-                 **loc)
+        ctx.emit(
+            "ASSET-INSPECT-INCONCLUSIVE",
+            f'ffprobe returned unparsable output for "{entry.relpath}".',
+            **loc,
+        )
         return
     streams = data.get("streams") if isinstance(data, dict) else None
     videos = [s for s in streams or [] if isinstance(s, dict) and s.get("codec_type") == "video"]
     if not videos:
-        ctx.emit("ASSET-VIDEO-UNREADABLE", f'"{entry.relpath}" has no video stream.', **loc,
-                 suggestion="Re-export the video.")
+        ctx.emit(
+            "ASSET-VIDEO-UNREADABLE",
+            f'"{entry.relpath}" has no video stream.',
+            **loc,
+            suggestion="Re-export the video.",
+        )
         return
     codec = str(videos[0].get("codec_name", "unknown"))
     expected = str(ctx.registry.get("ADOBE-MEDIA-VIDEO-CODEC").limit)
     if codec != expected:
-        ctx.emit("ADOBE-MEDIA-VIDEO-CODEC",
-                 f'"{entry.relpath}" uses the {codec} codec; the video guidance names H.264.', **loc,
-                 suggestion="Check Adobe's current video requirements before re-encoding.")
+        ctx.emit(
+            "ADOBE-MEDIA-VIDEO-CODEC",
+            f'"{entry.relpath}" uses the {codec} codec; the video guidance names H.264.',
+            **loc,
+            suggestion="Check Adobe's current video requirements before re-encoding.",
+        )
     fmt = data.get("format") if isinstance(data, dict) else None
+    raw_duration = fmt.get("duration") if isinstance(fmt, dict) else None
     try:
-        duration = float(fmt.get("duration")) if isinstance(fmt, dict) else None
-    except (TypeError, ValueError):
+        duration = float(raw_duration) if isinstance(raw_duration, (str, int, float)) else None
+    except ValueError:
         duration = None
     if duration is None:
-        ctx.emit("ASSET-INSPECT-INCONCLUSIVE", f'ffprobe reported no duration for "{entry.relpath}".',
-                 **loc)
+        ctx.emit(
+            "ASSET-INSPECT-INCONCLUSIVE",
+            f'ffprobe reported no duration for "{entry.relpath}".',
+            **loc,
+        )
         return
     low, high = ctx.registry.range_limit("ADOBE-MEDIA-VIDEO-DURATION")
     if not low <= duration <= high:
-        ctx.emit("ADOBE-MEDIA-VIDEO-DURATION",
-                 f'"{entry.relpath}" is {duration:.2f} s long; the guidance range is {low:g}-{high:g} s.',
-                 **loc, suggestion="Trim or extend the clip to fit the documented range.")
+        ctx.emit(
+            "ADOBE-MEDIA-VIDEO-DURATION",
+            f'"{entry.relpath}" is {duration:.2f} s long; the guidance range is {low:g}-{high:g} s.',
+            **loc,
+            suggestion="Trim or extend the clip to fit the documented range.",
+        )

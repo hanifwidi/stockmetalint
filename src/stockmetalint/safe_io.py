@@ -36,10 +36,12 @@ def check_output_path(output: Path, *, protected: Sequence[Path], overwrite: boo
             raise OutputError(f"output path is a directory: {output}")
         for item in protected:
             with contextlib.suppress(OSError):
-                if item.exists() and os.path.samefile(item, output):
+                if item.exists() and item.samefile(output):
                     raise OutputError(f"output path is the same file as the input: {output}")
         if not overwrite:
-            raise OutputError(f"output file already exists: {output} (pass --overwrite to replace it)")
+            raise OutputError(
+                f"output file already exists: {output} (pass --overwrite to replace it)"
+            )
     target = output.resolve(strict=False)
     for item in protected:
         if _same_path_text(target, item.resolve(strict=False)):
@@ -62,10 +64,10 @@ def atomic_write_bytes(path: Path, data: bytes) -> None:
             handle.write(data)
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(tmp_name, path)
+        Path(tmp_name).replace(path)
     except BaseException as exc:
         with contextlib.suppress(OSError):
-            os.unlink(tmp_name)
+            Path(tmp_name).unlink()
         if isinstance(exc, OSError):
             raise OutputError(f"cannot write {path}: {exc.strerror or exc}") from None
         raise

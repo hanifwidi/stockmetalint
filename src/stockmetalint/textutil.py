@@ -22,27 +22,36 @@ FORMULA_PREFIXES: frozenset[str] = frozenset({"=", "+", "-", "@", "\t", "\r"})
 #: Bidirectional formatting characters ("Trojan Source", CVE-2021-42574).
 BIDI_CONTROLS: frozenset[str] = frozenset(
     {
-        "؜", "‎", "‏",
-        "‪", "‫", "‬", "‭", "‮",
-        "⁦", "⁧", "⁨", "⁩",
+        "\u061c",
+        "\u200e",
+        "\u200f",
+        "\u202a",
+        "\u202b",
+        "\u202c",
+        "\u202d",
+        "\u202e",
+        "\u2066",
+        "\u2067",
+        "\u2068",
+        "\u2069",
     }
 )
 
 #: Invisible characters that are suspicious anywhere in metadata.
-INVISIBLE_ALWAYS: frozenset[str] = frozenset({"​", "⁠", "﻿", "᠎", "­"})
+INVISIBLE_ALWAYS: frozenset[str] = frozenset({"\u200b", "\u2060", "\ufeff", "\u180e", "\u00ad"})
 
 #: Joiners are legitimate inside text (emoji sequences, Indic/Persian scripts)
 #: but never needed in a filename.
-JOINERS: frozenset[str] = frozenset({"‌", "‍"})
+JOINERS: frozenset[str] = frozenset({"\u200c", "\u200d"})
 
 #: Separators that users commonly type instead of ASCII commas between keywords.
 SUSPICIOUS_KEYWORD_SEPARATORS: dict[str, str] = {
     ";": "semicolon",
     "|": "vertical bar",
-    "，": "full-width comma",
-    "、": "ideographic comma",
-    "；": "full-width semicolon",
-    "،": "Arabic comma",
+    "\uff0c": "full-width comma",
+    "\u3001": "ideographic comma",
+    "\uff1b": "full-width semicolon",
+    "\u060c": "Arabic comma",
 }
 
 
@@ -145,4 +154,4 @@ def excerpt(text: str, limit: int = 60) -> str:
     """Shorten *text* for display in a message (never used to modify data)."""
     if len(text) <= limit:
         return text
-    return text[: limit - 1] + "…"
+    return text[: limit - 1] + "\u2026"

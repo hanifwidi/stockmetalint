@@ -14,8 +14,9 @@ def test_duplicate_keywords_case_whitespace_and_order_preserved_in_message() -> 
     report = lint(csv_bytes([make_row(keywords="Beach, sun,  beach , BEACH, sea")]))
     dup = [d for d in report.diagnostics if d.code == "META-KEYWORD-DUPLICATE"]
     assert len(dup) == 1
-    assert dup[0].message == ('Duplicate keywords: "beach" (#3) repeats "Beach" (#1); '
-                              '"BEACH" (#4) repeats "Beach" (#1).')
+    assert dup[0].message == (
+        'Duplicate keywords: "beach" (#3) repeats "Beach" (#1); "BEACH" (#4) repeats "Beach" (#1).'
+    )
 
 
 def test_nfkc_duplicates_are_suggestions_only() -> None:
@@ -32,9 +33,11 @@ def test_casefold_handles_ligatures_as_plain_duplicates() -> None:
 
 
 def test_empty_items_separators_and_low_value() -> None:
-    rows = [make_row(keywords="sky,,sun, sea,"),
-            make_row(filename="b.jpg", keywords="猫，犬, cat; dog, a|b, x"),
-            make_row(filename="c.jpg", keywords="beach, jpg, 4K, f/2.8, 50mm, ISO 100, sea")]
+    rows = [
+        make_row(keywords="sky,,sun, sea,"),
+        make_row(filename="b.jpg", keywords="猫，犬, cat; dog, a|b, x"),
+        make_row(filename="c.jpg", keywords="beach, jpg, 4K, f/2.8, 50mm, ISO 100, sea"),
+    ]
     report = lint(csv_bytes(rows))
     found = codes(report)
     assert "META-KEYWORD-EMPTY-ITEM" in found
@@ -58,11 +61,13 @@ def test_only_commas_is_required_error() -> None:
 
 
 def test_batch_filename_duplicates_and_collisions() -> None:
-    rows = [make_row("a.jpg", "Title one here", "a1, b1, c1"),
-            make_row("a.jpg", "Title two here", "a2, b2, c2"),
-            make_row("A.JPG", "Title three here", "a3, b3, c3"),
-            make_row("café.jpg", "Title four here", "a4, b4, c4"),
-            make_row("café.jpg", "Title five here", "a5, b5, c5")]
+    rows = [
+        make_row("a.jpg", "Title one here", "a1, b1, c1"),
+        make_row("a.jpg", "Title two here", "a2, b2, c2"),
+        make_row("A.JPG", "Title three here", "a3, b3, c3"),
+        make_row("café.jpg", "Title four here", "a4, b4, c4"),
+        make_row("café.jpg", "Title five here", "a5, b5, c5"),
+    ]
     report = lint(csv_bytes(rows))
     by_code = {d.code: d for d in report.diagnostics}
     assert by_code["BATCH-FILENAME-DUPLICATE"].row == 2
@@ -73,12 +78,14 @@ def test_batch_filename_duplicates_and_collisions() -> None:
 
 def test_batch_titles_and_keyword_sets_are_review_warnings() -> None:
     top10 = ", ".join(f"k{i}" for i in range(10))
-    rows = [make_row("a.jpg", "Same title", "x, y, z"),
-            make_row("b.jpg", "same  TITLE", "z, Y, x"),
-            make_row("c.jpg", "Other", top10 + ", extra1"),
-            make_row("d.jpg", "Another", top10 + ", extra2"),
-            make_row("e.jpg", "Short", "p, q"),
-            make_row("f.jpg", "Short too", "p, q")]
+    rows = [
+        make_row("a.jpg", "Same title", "x, y, z"),
+        make_row("b.jpg", "same  TITLE", "z, Y, x"),
+        make_row("c.jpg", "Other", top10 + ", extra1"),
+        make_row("d.jpg", "Another", top10 + ", extra2"),
+        make_row("e.jpg", "Short", "p, q"),
+        make_row("f.jpg", "Short too", "p, q"),
+    ]
     report = lint(csv_bytes(rows))
     found = {d.code: d for d in report.diagnostics}
     assert found["BATCH-TITLE-DUPLICATE"].row == 2
@@ -89,11 +96,13 @@ def test_batch_titles_and_keyword_sets_are_review_warnings() -> None:
 
 
 def test_hygiene_checks() -> None:
-    rows = [make_row(" a.jpg", " Padded title ", "a, b, c", "11", ""),
-            make_row("b.jpg", "Line\nbreak", "a, b, c"),
-            make_row("gpj‮.jpg", "Hidden​space", "a, b, c"),
-            make_row("c.jpg", "Café at night", "a, b, c"),
-            make_row("d.jpg", "@mention title", "-minus, b, c", "+1")]
+    rows = [
+        make_row(" a.jpg", " Padded title ", "a, b, c", "11", ""),
+        make_row("b.jpg", "Line\nbreak", "a, b, c"),
+        make_row("gpj‮.jpg", "Hidden​space", "a, b, c"),
+        make_row("c.jpg", "Café at night", "a, b, c"),
+        make_row("d.jpg", "@mention title", "-minus, b, c", "+1"),
+    ]
     report = lint(csv_bytes(rows))
     found = codes(report)
     assert found.count("META-WHITESPACE") == 2

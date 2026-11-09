@@ -18,6 +18,7 @@ import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path, PurePath
+from typing import Any
 
 from stockmetalint.errors import InputError
 from stockmetalint.textutil import excerpt
@@ -94,7 +95,9 @@ def scan_assets(root: Path, *, recursive: bool = False, label: str = "assets") -
         try:
             iterator = os.scandir(directory)
         except PermissionError:
-            raise InputError(f"permission denied listing {label} directory: {directory.name}") from None
+            raise InputError(
+                f"permission denied listing {label} directory: {directory.name}"
+            ) from None
         except OSError as exc:
             raise InputError(f"cannot list {label} directory: {exc.strerror or exc}") from None
         with iterator:
@@ -145,9 +148,14 @@ def check_assets(
 
     files = inventory.files
     if not files:
-        ctx.emit("ASSET-DIR-EMPTY", "The asset directory contains no candidate files"
-                 + (f" ({inventory.ignored} hidden/system files ignored)." if inventory.ignored else "."),
-                 suggestion="Point --assets at the folder that holds the media files.")
+        ctx.emit(
+            "ASSET-DIR-EMPTY",
+            "The asset directory contains no candidate files"
+            + (
+                f" ({inventory.ignored} hidden/system files ignored)." if inventory.ignored else "."
+            ),
+            suggestion="Point --assets at the folder that holds the media files.",
+        )
 
     collisions: dict[tuple[str, str], list[AssetEntry]] = defaultdict(list)
     for entry in files:
@@ -156,9 +164,12 @@ def check_assets(
     for group in collisions.values():
         if len(group) > 1:
             names = ", ".join(f'"{e.relpath}"' for e in group)
-            ctx.emit("ASSET-CASE-COLLISION", f"Files differ only by case: {names}.",
-                     filename=group[0].relpath,
-                     suggestion="Rename so names stay unique on case-insensitive file systems.")
+            ctx.emit(
+                "ASSET-CASE-COLLISION",
+                f"Files differ only by case: {names}.",
+                filename=group[0].relpath,
+                suggestion="Rename so names stay unique on case-insensitive file systems.",
+            )
 
     referenced: set[str] = set()
     matched: list[tuple[RowView, AssetEntry]] = []
@@ -166,15 +177,24 @@ def check_assets(
         name = row.filename
         if not row.aligned or not name or not name.strip() or path_problem(name):
             continue
-        loc = {"line": row.line, "row": row.row, "column": "Filename", "filename": name}
+        loc: dict[str, Any] = {
+            "line": row.line,
+            "row": row.row,
+            "column": "Filename",
+            "filename": name,
+        }
         hits = by_name.get(name)
         if hits:
             entry = hits[0]
             if len(hits) > 1:
-                ctx.emit("ASSET-AMBIGUOUS",
-                         f'"{excerpt(name, 50)}" exists in several folders: '
-                         + ", ".join(e.relpath for e in hits) + f"; using {entry.relpath}.", **loc,
-                         suggestion="Keep one copy per file name in the batch folder.")
+                ctx.emit(
+                    "ASSET-AMBIGUOUS",
+                    f'"{excerpt(name, 50)}" exists in several folders: '
+                    + ", ".join(e.relpath for e in hits)
+                    + f"; using {entry.relpath}.",
+                    **loc,
+                    suggestion="Keep one copy per file name in the batch folder.",
+                )
             referenced.update(e.relpath for e in hits)
             _check_entry(ctx, entry, loc, matched, row)
             continue
@@ -183,59 +203,88 @@ def check_assets(
         trimmed_hits = by_name.get(name.strip()) if name != name.strip() else None
         if nfc_hits:
             referenced.update(e.relpath for e in nfc_hits)
-            ctx.emit("ASSET-UNICODE-MISMATCH",
-                     f'"{excerpt(name, 50)}" matches "{nfc_hits[0].relpath}" only after Unicode '
-                     "normalization (NFC/NFD).", **loc,
-                     suggestion="Rename the file or edit the cell so both use the same (NFC) spelling.")
+            ctx.emit(
+                "ASSET-UNICODE-MISMATCH",
+                f'"{excerpt(name, 50)}" matches "{nfc_hits[0].relpath}" only after Unicode '
+                "normalization (NFC/NFD).",
+                **loc,
+                suggestion="Rename the file or edit the cell so both use the same (NFC) spelling.",
+            )
         elif fold_hits:
             referenced.update(e.relpath for e in fold_hits)
-            ctx.emit("ASSET-CASE-MISMATCH",
-                     f'No file named "{excerpt(name, 50)}"; "{fold_hits[0].relpath}" differs only by '
-                     "letter case.", **loc,
-                     suggestion=f'Use the exact name "{fold_hits[0].name}" in the CSV or rename the file.')
+            ctx.emit(
+                "ASSET-CASE-MISMATCH",
+                f'No file named "{excerpt(name, 50)}"; "{fold_hits[0].relpath}" differs only by '
+                "letter case.",
+                **loc,
+                suggestion=f'Use the exact name "{fold_hits[0].name}" in the CSV or rename the file.',
+            )
         elif trimmed_hits:
             referenced.update(e.relpath for e in trimmed_hits)
-            ctx.emit("ASSET-MISSING",
-                     f'No file named "{excerpt(name, 50)}"; a file matches after removing surrounding '
-                     "whitespace.", **loc, suggestion="Remove the whitespace from the Filename cell.")
+            ctx.emit(
+                "ASSET-MISSING",
+                f'No file named "{excerpt(name, 50)}"; a file matches after removing surrounding '
+                "whitespace.",
+                **loc,
+                suggestion="Remove the whitespace from the Filename cell.",
+            )
         else:
             close = difflib.get_close_matches(name, [e.name for e in files], n=1, cutoff=0.75)
             hint = f' Closest file: "{close[0]}".' if close else ""
-            ctx.emit("ASSET-MISSING", f'No file named "{excerpt(name, 50)}" in the asset directory.{hint}',
-                     **loc, suggestion="Check the spelling and extension, or add the file.")
+            ctx.emit(
+                "ASSET-MISSING",
+                f'No file named "{excerpt(name, 50)}" in the asset directory.{hint}',
+                **loc,
+                suggestion="Check the spelling and extension, or add the file.",
+            )
 
     for entry in files:
         if entry.relpath not in referenced and entry.kind is EntryKind.FILE:
-            ctx.emit("ASSET-ORPHAN", f'"{entry.relpath}" has no row in the CSV.', filename=entry.relpath,
-                     suggestion="Add a CSV row for it or move it out of the batch folder.")
+            ctx.emit(
+                "ASSET-ORPHAN",
+                f'"{entry.relpath}" has no row in the CSV.',
+                filename=entry.relpath,
+                suggestion="Add a CSV row for it or move it out of the batch folder.",
+            )
     return matched
 
 
 def _check_entry(
     ctx: LintContext,
     entry: AssetEntry,
-    loc: dict[str, object],
+    loc: dict[str, Any],
     matched: list[tuple[RowView, AssetEntry]],
     row: RowView,
 ) -> None:
-    line, row_no, name = loc["line"], loc["row"], str(loc["filename"])
-    kw = {"line": line if isinstance(line, int) else None,
-          "row": row_no if isinstance(row_no, int) else None,
-          "column": "Filename", "filename": name}
     if entry.kind is EntryKind.SYMLINK_ESCAPE:
-        ctx.emit("ASSET-SYMLINK-ESCAPE",
-                 f'"{entry.relpath}" is a symbolic link that resolves outside the asset directory; '
-                 "it was not followed.", **kw,
-                 suggestion="Copy the real file into the batch folder.")
+        ctx.emit(
+            "ASSET-SYMLINK-ESCAPE",
+            f'"{entry.relpath}" is a symbolic link that resolves outside the asset directory; '
+            "it was not followed.",
+            **loc,
+            suggestion="Copy the real file into the batch folder.",
+        )
     elif entry.kind is EntryKind.SYMLINK_BROKEN:
-        ctx.emit("ASSET-SYMLINK-BROKEN", f'"{entry.relpath}" is a broken symbolic link.', **kw,
-                 suggestion="Replace the link with the real file.")
+        ctx.emit(
+            "ASSET-SYMLINK-BROKEN",
+            f'"{entry.relpath}" is a broken symbolic link.',
+            **loc,
+            suggestion="Replace the link with the real file.",
+        )
     elif entry.kind is not EntryKind.FILE:
-        ctx.emit("ASSET-NOT-REGULAR-FILE", f'"{entry.relpath}" is a {entry.kind.value}, not a file.', **kw,
-                 suggestion="Use a regular media file.")
+        ctx.emit(
+            "ASSET-NOT-REGULAR-FILE",
+            f'"{entry.relpath}" is a {entry.kind.value}, not a file.',
+            **loc,
+            suggestion="Use a regular media file.",
+        )
     elif entry.size == 0:
-        ctx.emit("ASSET-EMPTY-FILE", f'"{entry.relpath}" is empty (0 bytes).', **kw,
-                 suggestion="Re-export the media file.")
+        ctx.emit(
+            "ASSET-EMPTY-FILE",
+            f'"{entry.relpath}" is empty (0 bytes).',
+            **loc,
+            suggestion="Re-export the media file.",
+        )
     else:
         matched.append((row, entry))
 
@@ -249,11 +298,19 @@ def check_releases(ctx: LintContext, rows: list[RowView], inventory: AssetInvent
             if not name:
                 continue
             candidates = [name] + [name + ext for ext in RELEASE_EXTENSIONS]
-            if path_problem(name) or not any(c in available for c in candidates):
-                suffix = PurePath(name).suffix
-                tried = name if suffix else f"{name}, {name}.jpg, {name}.jpeg"
-                ctx.emit("ASSET-RELEASE-MISSING",
-                         f'Release "{excerpt(name, 40)}" not found in the releases directory '
-                         f"(tried {tried}).", line=row.line, row=row.row, column="Releases",
-                         filename=row.filename or None,
-                         suggestion="Check the release name or add the release JPEG locally.")
+            if path_problem(name):
+                detail = "is not a bare file name, so it was not looked up"
+            elif not any(c in available for c in candidates):
+                tried = name if PurePath(name).suffix else f"{name}, {name}.jpg, {name}.jpeg"
+                detail = f"was not found in the releases directory (tried {tried})"
+            else:
+                continue
+            ctx.emit(
+                "ASSET-RELEASE-MISSING",
+                f'Release "{excerpt(name, 40)}" {detail}.',
+                line=row.line,
+                row=row.row,
+                column="Releases",
+                filename=row.filename or None,
+                suggestion="Check the release name or add the release JPEG locally.",
+            )

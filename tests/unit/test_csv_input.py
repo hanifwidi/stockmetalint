@@ -27,9 +27,11 @@ class Recorder:
 
 
 def test_line_and_row_numbers_stay_distinct_with_multiline_fields() -> None:
-    data = (b"Filename,Title,Keywords,Category,Releases\n"
-            b'a.jpg,"Line one\nline two",kw,1,\n'
-            b"b.jpg,Title,kw,1,\n")
+    data = (
+        b"Filename,Title,Keywords,Category,Releases\n"
+        b'a.jpg,"Line one\nline two",kw,1,\n'
+        b"b.jpg,Title,kw,1,\n"
+    )
     rec = Recorder()
     parsed = parse_csv_bytes(data, rec)
     assert [(r.row, r.line, r.end_line) for r in parsed.records] == [(1, 2, 3), (2, 4, 4)]
@@ -38,7 +40,13 @@ def test_line_and_row_numbers_stay_distinct_with_multiline_fields() -> None:
 
 def test_quoted_keyword_commas_are_one_cell() -> None:
     parsed = parse_csv_bytes(csv_bytes([make_row(keywords="a, b, c, d")]), Recorder())
-    assert parsed.records[0].fields == ("photo-001.jpg", "A calm lake at dawn", "a, b, c, d", "11", "")
+    assert parsed.records[0].fields == (
+        "photo-001.jpg",
+        "A calm lake at dawn",
+        "a, b, c, d",
+        "11",
+        "",
+    )
 
 
 def test_bom_is_accepted_and_reported_as_info() -> None:
@@ -47,15 +55,18 @@ def test_bom_is_accepted_and_reported_as_info() -> None:
     assert report.exit_code() == 0
 
 
-@pytest.mark.parametrize(("data", "code"), [
-    (b"", "CSV-FILE-EMPTY"),
-    (b"\xef\xbb\xbf  \n\n", "CSV-FILE-EMPTY"),
-    (b"PK\x03\x04rest-of-xlsx", "CSV-FILE-BINARY"),
-    (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1xls", "CSV-FILE-BINARY"),
-    (b"\xff\xd8\xff\xe0jpeg", "CSV-FILE-BINARY"),
-    ("Filename,Title\n".encode("utf-16"), "ADOBE-CSV-ENCODING-UTF8"),
-    (b"Filename,Title\x00,Keywords\n", "CSV-NUL-BYTE"),
-])
+@pytest.mark.parametrize(
+    ("data", "code"),
+    [
+        (b"", "CSV-FILE-EMPTY"),
+        (b"\xef\xbb\xbf  \n\n", "CSV-FILE-EMPTY"),
+        (b"PK\x03\x04rest-of-xlsx", "CSV-FILE-BINARY"),
+        (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1xls", "CSV-FILE-BINARY"),
+        (b"\xff\xd8\xff\xe0jpeg", "CSV-FILE-BINARY"),
+        ("Filename,Title\n".encode("utf-16"), "ADOBE-CSV-ENCODING-UTF8"),
+        (b"Filename,Title\x00,Keywords\n", "CSV-NUL-BYTE"),
+    ],
+)
 def test_unreadable_inputs_are_fatal(data: bytes, code: str) -> None:
     report = lint(data)
     assert code in codes(report)
@@ -78,10 +89,13 @@ def test_invalid_utf8_offsets_limit() -> None:
     assert invalid_utf8_offsets(b"\xff" * 50, limit=3) == [0, 1, 2]
 
 
-@pytest.mark.parametrize(("data", "line"), [
-    (b"Filename,Title,Keywords\na.jpg,\"unterminated,kw\nb.jpg,t,k\n", 2),
-    (b"Filename,Title,Keywords\na.jpg,\"quoted\"junk,kw\n", 2),
-])
+@pytest.mark.parametrize(
+    ("data", "line"),
+    [
+        (b'Filename,Title,Keywords\na.jpg,"unterminated,kw\nb.jpg,t,k\n', 2),
+        (b'Filename,Title,Keywords\na.jpg,"quoted"junk,kw\n', 2),
+    ],
+)
 def test_malformed_quotes_stop_parsing_with_location(data: bytes, line: int) -> None:
     report = lint(data)
     bad = [d for d in report.diagnostics if d.code == "CSV-MALFORMED"]
@@ -96,9 +110,11 @@ def test_rows_before_malformed_record_are_still_checked() -> None:
 
 
 def test_blank_records() -> None:
-    data = (b"\nFilename,Title,Keywords,Category,Releases\n"
-            + b"a.jpg,Title one here,a b c,1,\n\n"
-            + b"b.jpg,Title two here,d e f,1,\n,,,,\n\n")
+    data = (
+        b"\nFilename,Title,Keywords,Category,Releases\n"
+        b"a.jpg,Title one here,a b c,1,\n\n"
+        b"b.jpg,Title two here,d e f,1,\n,,,,\n\n"
+    )
     report = lint(data)
     blanks = [d for d in report.diagnostics if d.code == "CSV-BLANK-ROW"]
     assert [d.line for d in blanks] == [1, 4, 6]  # before header, between rows, trailing ",,,,"
@@ -106,9 +122,11 @@ def test_blank_records() -> None:
 
 
 def test_field_count_mismatch() -> None:
-    data = (b"Filename,Title,Keywords,Category,Releases\n"
-            b"a.jpg,Title,sky, sun, sea,1,\n"   # unquoted commas -> 7 fields
-            b"b.jpg,Title,kw\n")                 # 3 fields
+    data = (
+        b"Filename,Title,Keywords,Category,Releases\n"
+        b"a.jpg,Title,sky, sun, sea,1,\n"  # unquoted commas -> 7 fields
+        b"b.jpg,Title,kw\n"
+    )  # 3 fields
     report = lint(data)
     mismatches = [d for d in report.diagnostics if d.code == "CSV-ROW-FIELD-COUNT"]
     assert [d.row for d in mismatches] == [1, 2]
@@ -119,8 +137,9 @@ def test_field_count_mismatch() -> None:
 
 @pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
 def test_line_endings(newline: str) -> None:
-    data = csv_bytes([make_row(), make_row("photo-002.jpg", "Another calm lake", "a, b, c")],
-                     newline=newline)
+    data = csv_bytes(
+        [make_row(), make_row("photo-002.jpg", "Another calm lake", "a, b, c")], newline=newline
+    )
     rec = Recorder()
     parsed = parse_csv_bytes(data, rec)
     assert parsed.newline == newline

@@ -46,10 +46,24 @@ class Diagnostic:
     def sort_key(self) -> tuple[int, int, int, str, str, str, str]:
         """File-level findings first, then by row, then by rule ID."""
         if self.row is None:
-            return (0, self.line or 0, 0, self.code, self.column or "", self.filename or "",
-                    self.message)
-        return (1, self.row, self.line or 0, self.code, self.column or "", self.filename or "",
-                self.message)
+            return (
+                0,
+                self.line or 0,
+                0,
+                self.code,
+                self.column or "",
+                self.filename or "",
+                self.message,
+            )
+        return (
+            1,
+            self.row,
+            self.line or 0,
+            self.code,
+            self.column or "",
+            self.filename or "",
+            self.message,
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return {
