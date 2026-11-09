@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "feat/**"]
+  pull_request:
+  workflow_dispatch:
+
+# Read-only token; no job needs write access or secrets.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint, format and strict types
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Ruff lint
+        run: ruff check src tests scripts
+      - name: Ruff format check
+        run: ruff format --check src tests scripts
+      - name: Mypy (strict)
+        run: mypy
+
+  test:
+    name: Tests (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install FFmpeg (Linux only; exercises the optional ffprobe checks)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends ffmpeg
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Pytest with coverage
+        shell: bash
+        run: >
+          python -m pytest -ra --cov=stockmetalint --cov-branch
+          --cov-report=term-missing --cov-report=xml
+          --junitxml=junit.xml
+          ${{ runner.os == 'Linux' && '--cov-fail-under=90' || '' }}
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results-${{ matrix.os }}-py${{ matrix.python }}
+          path: |
+            junit.xml
+            coverage.xml
+          retention-days: 14
+          if-no-files-found: error
+
+  package:
+    name: Build, verify and install wheel
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Build sdist and wheel
+        run: |
+          python -m pip install build
+          python -m build
+      - name: Check package metadata and contents
+        shell: bash
+        run: |
+          python -m pip install twine
+          python -m twine check --strict dist/*
+          python -m zipfile -l dist/*.whl | tee wheel-contents.txt
+          grep -q "stockmetalint/rules/adobe_csv_2026_06.json" wheel-contents.txt
+          grep -q "stockmetalint/rules/core.json" wheel-contents.txt
+          grep -q "stockmetalint/schemas/report-v1.schema.json" wheel-contents.txt
+          grep -q "stockmetalint/py.typed" wheel-contents.txt
+          grep -q "licenses/LICENSE" wheel-contents.txt
+      - name: Install wheel into a fresh venv (offline) and smoke-test the CLI
+        shell: bash
+        run: python scripts/wheel_smoke.py dist/*.whl
+      - name: Upload distributions
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error
+
+  audit:
+    name: Dependency vulnerability audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Audit the installed dev/test environment
+        run: |
+          python -m pip install -e ".[dev]" pip-audit
+          pip-audit --skip-editable --progress-spinner off

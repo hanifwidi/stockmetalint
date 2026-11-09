@@ -99,7 +99,7 @@ def test_json_report_to_file_and_paths(run_cli: Run, tmp_path: Path) -> None:
     )
     _json(CliResult(0, out.read_text("utf-8"), ""))
     shown = run_cli("lint", EXAMPLES / "adobe-valid.csv", "--format", "json", "--show-paths")
-    assert json.loads(shown.out)["source_file"].endswith("examples/adobe-valid.csv")
+    assert Path(json.loads(shown.out)["source_file"]).parts[-2:] == ("examples", "adobe-valid.csv")
 
 
 def test_lint_output_cannot_overwrite_input(run_cli: Run, write_csv: Callable[..., Path]) -> None:

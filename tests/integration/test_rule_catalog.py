@@ -143,11 +143,7 @@ TRIGGERS: dict[str, Trigger] = {
     "ASSET-UNICODE-MISMATCH": lambda t: _assets(t, {"é.jpg": b"x"}, make_row("é.jpg")),
     "ASSET-ORPHAN": lambda t: _assets(t, {"photo-001.jpg": b"x", "extra.jpg": b"x"}, make_row()),
     "ASSET-DIR-EMPTY": lambda t: _assets(t, {}, make_row()),
-    "ASSET-CASE-COLLISION": lambda t: (
-        _assets(t, {"x.jpg": b"1", "X.jpg": b"2"}, make_row("x.jpg"))
-        if sys.platform not in ("win32", "darwin")
-        else ["ASSET-CASE-COLLISION"]
-    ),
+    "ASSET-CASE-COLLISION": lambda t: _assets(t, {"x.jpg": b"1", "X.jpg": b"2"}, make_row("x.jpg")),
     "ASSET-AMBIGUOUS": lambda t: (
         (t / "assets" / "s1").mkdir(parents=True),
         (t / "assets" / "s2").mkdir(),
@@ -155,12 +151,8 @@ TRIGGERS: dict[str, Trigger] = {
         (t / "assets" / "s2" / "photo-001.jpg").write_bytes(b"x"),
         codes(lint(csv_bytes([make_row()]), assets_dir=t / "assets", recursive=True)),
     )[-1],
-    "ASSET-SYMLINK-ESCAPE": lambda t: (
-        _symlink(t, True) if sys.platform != "win32" else ["ASSET-SYMLINK-ESCAPE"]
-    ),
-    "ASSET-SYMLINK-BROKEN": lambda t: (
-        _symlink(t, False) if sys.platform != "win32" else ["ASSET-SYMLINK-BROKEN"]
-    ),
+    "ASSET-SYMLINK-ESCAPE": lambda t: _symlink(t, True),
+    "ASSET-SYMLINK-BROKEN": lambda t: _symlink(t, False),
     "ASSET-NOT-REGULAR-FILE": lambda t: _assets(t, {"photo-001.jpg": None}, make_row()),
     "ASSET-EMPTY-FILE": lambda t: _assets(t, {"photo-001.jpg": b""}, make_row()),
     "ASSET-RELEASE-MISSING": _releases,
@@ -176,10 +168,9 @@ TRIGGERS: dict[str, Trigger] = {
     "ASSET-VIDEO-UNREADABLE": lambda t: _assets(
         t, {"c.mp4": b"\x00\x00\x00\x18ftypmp42" + b"\x00" * 9}, make_row("c.mp4"), inspect=True
     ),
-    "ASSET-INSPECT-INCONCLUSIVE": lambda t: (
-        _assets(t, {"c.mp4": b"\x00\x00\x00\x18ftypmp42"}, make_row("c.mp4"), inspect=True)
-        if not shutil.which("ffprobe")
-        else ["ASSET-INSPECT-INCONCLUSIVE"]
+    # Run with ffprobe forced unavailable (see the test below): a real code path, not a stub.
+    "ASSET-INSPECT-INCONCLUSIVE": lambda t: _assets(
+        t, {"c.mp4": b"\x00\x00\x00\x18ftypmp42"}, make_row("c.mp4"), inspect=True
     ),
     "ADOBE-CSV-FILE-TYPE": lambda t: codes(lint(csv_bytes([make_row()]), source_name="a.xlsx")),
     "ADOBE-CSV-FILE-SIZE": lambda t: codes(lint(csv_bytes(unique_rows(4000)) + b"\n" * 900_000)),
@@ -231,6 +222,7 @@ TRIGGERS: dict[str, Trigger] = {
 
 NEEDS_FFMPEG = {"ADOBE-MEDIA-VIDEO-CODEC", "ADOBE-MEDIA-VIDEO-DURATION", "ASSET-VIDEO-UNREADABLE"}
 NEEDS_SYMLINKS = {"ASSET-SYMLINK-ESCAPE", "ASSET-SYMLINK-BROKEN"}
+NEEDS_CASE_SENSITIVE_FS = {"ASSET-CASE-COLLISION"}
 
 
 def test_catalog_covers_every_rule() -> None:
@@ -238,11 +230,15 @@ def test_catalog_covers_every_rule() -> None:
 
 
 @pytest.mark.parametrize("rule_id", sorted(TRIGGERS))
-def test_rule_is_triggerable(rule_id: str, tmp_path: Path) -> None:
+def test_rule_is_triggerable(rule_id: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     if rule_id in NEEDS_FFMPEG and not (shutil.which("ffmpeg") and shutil.which("ffprobe")):
         pytest.skip("ffmpeg/ffprobe not installed")
     if rule_id in NEEDS_SYMLINKS and sys.platform == "win32":
         pytest.skip("symlinks need privileges on Windows")
+    if rule_id in NEEDS_CASE_SENSITIVE_FS and sys.platform in ("win32", "darwin"):
+        pytest.skip("needs a case-sensitive file system")
     pytest.importorskip("PIL")
+    if rule_id == "ASSET-INSPECT-INCONCLUSIVE":
+        monkeypatch.setattr("stockmetalint.engine.find_ffprobe", lambda: None)
     found = TRIGGERS[rule_id](tmp_path)
     assert rule_id in found
