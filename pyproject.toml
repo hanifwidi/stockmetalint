@@ -54,7 +54,7 @@ Issues = "https://github.com/hanifwidi/stockmetalint/issues"
 Changelog = "https://github.com/hanifwidi/stockmetalint/blob/main/CHANGELOG.md"
 
 [tool.hatch.version]
-path = "src/stockmetalint/__init__.py"
+path = "src/stockmetalint/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/stockmetalint"]
@@ -110,6 +110,7 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = ["-ra", "--strict-markers", "--strict-config"]
 markers = [
   "slow: performance or subprocess-heavy tests",

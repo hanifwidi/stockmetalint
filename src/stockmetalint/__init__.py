@@ -7,8 +7,7 @@ approval, or ranking on any platform.
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
-
+from stockmetalint._version import __version__
 from stockmetalint.domain import Diagnostic, Report, Severity
 from stockmetalint.engine import LintOptions, lint_bytes, lint_path
 

@@ -309,3 +309,8 @@ def check_category_summary(ctx: LintContext, rows: list[RowView]) -> None:
         ctx.emit("ADOBE-CSV-CATEGORY-RECOMMENDED",
                  f"{len(missing)} of {len(candidates)} rows have no Category (rows {sample}).",
                  suggestion="Add a category number; Adobe highly recommends categories.")
+
+
+def canonical_header_names(header: tuple[str, ...], template: tuple[str, ...]) -> list[str | None]:
+    """Canonical template name for each header cell (None if unknown)."""
+    return [raw if raw in template else _canonical_for(raw, template) for raw in header]

@@ -209,8 +209,8 @@ def _load_json(filename: str) -> dict[str, Any]:
         data = json.loads(text)
     except (OSError, ValueError) as exc:
         raise RegistryError(f"cannot load rule registry {filename}: {exc}") from exc
-    if not isinstance(data, dict) or data.get("registry_format") != 1:
-        raise RegistryError(f"{filename}: unsupported registry_format")
+    if not isinstance(data, dict):
+        raise RegistryError(f"{filename}: top level must be a JSON object")
     return data
 
 
@@ -303,6 +303,9 @@ def load_registry(platform: str = "adobe-csv") -> RuleRegistry:
     if platform_data.get("platform") != platform:
         raise RegistryError(f"{platform_file}: platform field does not match {platform!r}")
 
+    for filename, data in ((platform_file, platform_data), (CORE_FILE, core_data)):
+        if data.get("registry_format") != 1:
+            raise RegistryError(f"{filename}: unsupported registry_format")
     rules: dict[str, Rule] = {}
     all_sources: dict[str, Source] = {}
     for filename, data in ((CORE_FILE, core_data), (platform_file, platform_data)):
