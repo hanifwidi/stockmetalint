@@ -6,6 +6,10 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-10
+
+First public release. Adobe rules are **unverified** against live pages (see docs/rule-sources.md).
+
 ### Fixed (adversarial review, 2026-11-10)
 
 - `fix` now refuses to write when parsing stopped at a malformed record (previously rows after it
