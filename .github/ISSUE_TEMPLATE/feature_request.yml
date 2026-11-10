@@ -1,0 +1,23 @@
+name: Enhancement
+description: Suggest a new check, platform profile or improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What metadata problem would this catch, and how often does it happen?
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Official source
+      description: For platform rules, link the official page and quote the exact sentence with its "last updated" date. Heuristics must be labelled as such.
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour
+      description: Severity, message, and whether it should be blocking. StockMetaLint does not generate or rewrite titles/keywords.
+    validations:
+      required: true

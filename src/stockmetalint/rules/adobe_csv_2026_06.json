@@ -1,0 +1,706 @@
+{
+  "registry_format": 1,
+  "profile_id": "adobe-csv-2026-06",
+  "platform": "adobe-csv",
+  "title": "Adobe Stock contributor CSV metadata rules (sources dated 2026-06-11 / 2026-09)",
+  "verification_summary": "UNVERIFIED against live pages: helpx.adobe.com was unreachable from the build environment on 2026-11-09. Limits are seeded from the project brief and corroborated by search-engine snippets of the official pages where noted. Re-verify before relying on them.",
+  "verified_at": null,
+  "template_header": [
+    "Filename",
+    "Title",
+    "Keywords",
+    "Category",
+    "Releases"
+  ],
+  "template_header_verification": "seed-unverified: header spelling and order come from the project brief and common usage; the official template file could not be downloaded in this build.",
+  "required_columns": [
+    "Filename",
+    "Title",
+    "Keywords"
+  ],
+  "profiles": {
+    "standard": "Adobe Stock CSV requirements plus StockMetaLint integrity, hygiene and security checks.",
+    "editorial": "Everything in standard, plus non-blocking advisories from Adobe guidance pages (the 49-keyword guidance)."
+  },
+  "categories": {
+    "verification": "partially-corroborated",
+    "source_id": "adobe-categories",
+    "values": {
+      "1": "Animals",
+      "2": "Buildings and Architecture",
+      "3": "Business",
+      "4": "Drinks",
+      "5": "The Environment",
+      "6": "States of Mind",
+      "7": "Food",
+      "8": "Graphic Resources",
+      "9": "Hobbies and Leisure",
+      "10": "Industry",
+      "11": "Landscapes",
+      "12": "Lifestyle",
+      "13": "People",
+      "14": "Plants and Flowers",
+      "15": "Culture and Religion",
+      "16": "Science",
+      "17": "Social Issues",
+      "18": "Sports",
+      "19": "Technology",
+      "20": "Transport",
+      "21": "Travel"
+    }
+  },
+  "sources": {
+    "adobe-csv-requirements": {
+      "title": "CSV requirements for Adobe Stock",
+      "url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "page_updated": "2026-06-11",
+      "page_updated_basis": "Stated in the project brief; not independently confirmed.",
+      "verification": "snippet-corroborated",
+      "evidence_accessed": "2026-11-09",
+      "evidence": "Search-engine index snippets quoting this page (retrieved via web search). Direct fetch of helpx.adobe.com was blocked by the build environment's network policy on 2026-11-09."
+    },
+    "adobe-create-csv": {
+      "title": "Create a CSV file (Adobe Stock contributor help)",
+      "url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/create-csv-file.html",
+      "page_updated": "2026-06-11",
+      "page_updated_basis": "Stated in the project brief; not independently confirmed.",
+      "verification": "seed-unverified",
+      "evidence_accessed": null,
+      "evidence": "No independent evidence obtained. Direct fetch of helpx.adobe.com was blocked by the build environment's network policy on 2026-11-09."
+    },
+    "adobe-upload-csv": {
+      "title": "Upload a CSV file (Adobe Stock contributor help)",
+      "url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/upload-csv-file.html",
+      "page_updated": "2026-06-11",
+      "page_updated_basis": "Stated in the project brief; not independently confirmed.",
+      "verification": "seed-unverified",
+      "evidence_accessed": null,
+      "evidence": "No independent evidence obtained. Direct fetch of helpx.adobe.com was blocked by the build environment's network policy on 2026-11-09."
+    },
+    "adobe-tips-titles-keywords": {
+      "title": "Tips for effective titles and keywords",
+      "url": "https://helpx.adobe.com/stock/contributor/content-policies-guidelines/metadata/tips-effective-titles-keywords.html",
+      "page_updated": "2026-09",
+      "page_updated_basis": "Stated in the project brief (September 2026); not independently confirmed.",
+      "verification": "snippet-corroborated",
+      "evidence_accessed": "2026-11-09",
+      "evidence": "Search snippets show 'Including keywords (up to 49 per content submission) helps customers discover your content.' on a page with this title at https://helpx.adobe.com/stock/contributor/help/titles-and-keyword.html (older URL). Direct fetch of helpx.adobe.com was blocked by the build environment's network policy on 2026-11-09."
+    },
+    "adobe-maximize-metadata": {
+      "title": "Maximize metadata to get discovered",
+      "url": "https://helpx.adobe.com/stock/contributor/help/artist-hub-migration/maximize-metadata-to-get-discovered.html",
+      "page_updated": null,
+      "page_updated_basis": "Unknown.",
+      "verification": "snippet-corroborated",
+      "evidence_accessed": "2026-11-09",
+      "evidence": "Search snippet: 'While you can add up to 49 keyword tags for all types of assets on Adobe Stock, more isn't always better.' Direct fetch of helpx.adobe.com was blocked by the build environment's network policy on 2026-11-09."
+    },
+    "adobe-upload-guidelines": {
+      "title": "Contributor content upload guidelines",
+      "url": "https://helpx.adobe.com/stock/contributor/content-policies-guidelines/content-policies/content-upload-guidelines.html",
+      "page_updated": "2026-09",
+      "page_updated_basis": "Stated in the project brief (September 2026); not independently confirmed.",
+      "verification": "seed-unverified",
+      "evidence_accessed": null,
+      "evidence": "No independent evidence obtained. Direct fetch of helpx.adobe.com was blocked by the build environment's network policy on 2026-11-09."
+    },
+    "adobe-photo-requirements": {
+      "title": "Technical and legal requirements for photo submission",
+      "url": "https://helpx.adobe.com/stock/contributor/submit-your-content/submit-photos/technical-legal-requirements-photo-submission.html",
+      "page_updated": null,
+      "page_updated_basis": "Unknown.",
+      "verification": "summary-corroborated",
+      "evidence_accessed": "2026-11-09",
+      "evidence": "A web-search answer summarizing this page stated a 4MP-100MP range, a 45MB maximum file size and JPEG with sRGB. No verbatim quote was available. Direct fetch of helpx.adobe.com was blocked by the build environment's network policy on 2026-11-09."
+    },
+    "adobe-video-requirements": {
+      "title": "Video requirements (Adobe Stock contributor help)",
+      "url": "https://helpx.adobe.com/stock/contributor/help/video-requirements.html",
+      "page_updated": null,
+      "page_updated_basis": "Unknown.",
+      "verification": "summary-corroborated",
+      "evidence_accessed": "2026-11-09",
+      "evidence": "A web-search answer summarizing Adobe video pages stated a 5-60 second duration and MOV or MP4 with the H.264 codec. No verbatim quote was available. Direct fetch of helpx.adobe.com was blocked by the build environment's network policy on 2026-11-09."
+    },
+    "adobe-categories": {
+      "title": "Adobe Stock categories",
+      "url": "https://helpx.adobe.com/stock/contributor/help/categories.html",
+      "page_updated": null,
+      "page_updated_basis": "Unknown.",
+      "verification": "partially-corroborated",
+      "evidence_accessed": "2026-11-09",
+      "evidence": "Search results confirm the names Animals, Buildings and Architecture, Business and Drinks in that order under 'Adobe Stock categories by number' (numbers not captured); a third-party source maps 7 Food, 8 Graphic Resources, 19 Technology, 20 Transport. The remaining numbers are a maintainer seed. Direct fetch of helpx.adobe.com was blocked by the build environment's network policy on 2026-11-09."
+    }
+  },
+  "rules": [
+    {
+      "rule_id": "ADOBE-CSV-FILE-TYPE",
+      "title": "Metadata file must be .csv",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "The metadata file must be a .csv (comma-separated values) file, not .xls, .xlsx or another type.",
+      "limit": ".csv",
+      "notes": "Snippet: 'CSV only (comma-separated values)'.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-FILE-SIZE",
+      "title": "CSV file larger than 1 MB",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "The CSV file must be 1 MB or smaller. More than 1,048,576 bytes (1 MiB) exceeds 1 MB under every common definition and is an error.",
+      "limit": 1048576,
+      "notes": "Snippet: 'The overall document must be 1MB or smaller.' Size is measured in bytes on disk, including any BOM.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-FILE-SIZE-DECIMAL",
+      "title": "CSV file larger than 1,000,000 bytes",
+      "severity": "warning",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "The file is larger than 1,000,000 bytes (1 MB decimal) but not larger than 1,048,576 bytes (1 MiB). The source does not say which definition of MB applies.",
+      "limit": 1000000,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-ROW-LIMIT",
+      "title": "More than 5,000 data rows",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "A CSV file may contain at most 5,000 data rows.",
+      "limit": 5000,
+      "notes": "Snippet: 'Limit your CSV to a maximum of 5,000 rows.' StockMetaLint counts data rows (header and blank records excluded); the source does not say whether the header counts.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-ENCODING-UTF8",
+      "title": "CSV is not valid UTF-8",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "The CSV must be saved as UTF-8 ('CSV UTF-8' in Excel). Invalid byte sequences and UTF-16 files are rejected.",
+      "limit": null,
+      "notes": "Snippet: 'If you're located outside the US and using Excel to create a CSV file, you need save your document as CSV UTF-8.' StockMetaLint requires valid UTF-8 for every file because other encodings cannot be decoded deterministically.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-HEADER-ABSENT",
+      "title": "Template header row missing",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "The first record does not contain any template column (Filename, Title, Keywords, Category, Releases). Row checks are skipped.",
+      "limit": null,
+      "notes": "Header spelling Filename,Title,Keywords,Category,Releases is a seed value; the official template file could not be downloaded in this build.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-HEADER-REQUIRED",
+      "title": "Required column missing",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "A required column (Filename, Title or Keywords) is missing from the header.",
+      "limit": "Filename,Title,Keywords",
+      "notes": "Snippet: 'Other columns are optional, but we highly recommend that you add categories.'",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-HEADER-NAME",
+      "title": "Header spelling differs from the template",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "A header cell differs from the template spelling by case, spacing, plural form or a small typo. Headers must match the official template exactly.",
+      "limit": null,
+      "notes": "Snippet: 'Use the exact headers from the official template without changes.'",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-HEADER-UNKNOWN",
+      "title": "Column not in the template",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "The header contains a column that is not part of the official template.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-HEADER-DUPLICATE",
+      "title": "Duplicate header column",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "A template column appears more than once in the header; only the first occurrence is checked.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-HEADER-OPTIONAL-MISSING",
+      "title": "Optional template column absent",
+      "severity": "warning",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "An optional template column (Category or Releases) is absent. Keeping the column with empty cells matches the template exactly.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-HEADER-ORDER",
+      "title": "Columns not in template order",
+      "severity": "warning",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "Template columns are present but not in template order (Filename, Title, Keywords, Category, Releases). Whether the uploader enforces column order is not documented.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-FILENAME-REQUIRED",
+      "title": "Filename is empty",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "The Filename cell is empty.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-FILENAME-LENGTH",
+      "title": "Filename longer than 30 characters",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "Filename, including the extension, must be 30 characters or fewer.",
+      "limit": 30,
+      "notes": "A web-search summary noted the 30-character filename limit appears only on some localized versions of the page; re-verify against the live page.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-FILENAME-EXTENSION",
+      "title": "Filename has no extension",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "Filename must be the exact asset file name including its extension (for example Myphoto1.jpg).",
+      "limit": null,
+      "notes": "Snippet: 'Exact filename including extension (e.g., Myphoto1.jpg, Myvideo1.mov).'",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-FILENAME-PATH",
+      "title": "Filename is a path, not a file name",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "Filename must be a bare file name: no directory separators, '..' traversal, absolute paths or drive letters such as C:.",
+      "limit": null,
+      "notes": "Derived from 'Exact filename including extension'; also blocks path traversal.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-TITLE-REQUIRED",
+      "title": "Title is empty",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "The Title cell is empty.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-TITLE-LENGTH",
+      "title": "Title longer than 70 characters",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "Title must be 70 characters or fewer, counted as Unicode code points. Text is never truncated automatically.",
+      "limit": 70,
+      "notes": "Snippet: 'Title, 70 characters maximum, plain text description without commas or special characters.'",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-TITLE-COMMA",
+      "title": "Title contains a comma",
+      "severity": "warning",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "The source describes the title as a plain-text description without commas.",
+      "limit": null,
+      "notes": "'Special characters' is not defined by the source, so only commas are checked. Severity is warning because rejection behavior is not documented.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-KEYWORDS-REQUIRED",
+      "title": "Keywords is empty",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "The Keywords cell has no keywords.",
+      "limit": 1,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-KEYWORDS-MAX",
+      "title": "More than 50 keywords",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "At most 50 comma-separated keywords per row in the CSV. Keyword order is preserved; nothing is removed automatically.",
+      "limit": 50,
+      "notes": "Snippet: 'Include a maximum of 50 keywords, and don't include technical data.' Guidance pages mention 49; see ADOBE-GUIDANCE-KEYWORDS-49 and docs/rule-discrepancies.md.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-CATEGORY-FORMAT",
+      "title": "Category is not a number",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "Category must be a category number (ASCII digits only).",
+      "limit": null,
+      "notes": "Snippet: 'Enter the number of the category that best describes the content.'",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-CATEGORY-UNKNOWN",
+      "title": "Category number not in the seed list",
+      "severity": "warning",
+      "scope": "adobe-csv",
+      "source_id": "adobe-categories",
+      "source_url": "https://helpx.adobe.com/stock/contributor/help/categories.html",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "partially-corroborated",
+      "description": "The Category number is not in the seed category list (1-21).",
+      "limit": "1-21",
+      "notes": "The complete numbered list could not be verified, so this is a warning, not an error.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-CATEGORY-RECOMMENDED",
+      "title": "Rows without Category",
+      "severity": "info",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "Category is optional, but the source highly recommends adding categories.",
+      "limit": null,
+      "notes": "Reported once per file with the number of affected rows.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-CSV-RELEASE-NAME-LENGTH",
+      "title": "Release name longer than 30 characters",
+      "severity": "error",
+      "scope": "adobe-csv",
+      "source_id": "adobe-csv-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/manage-your-portfolio/csv-requirements-content.html",
+      "source_updated": "2026-06-11",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "Each release name in the Releases cell must be 30 characters or fewer.",
+      "limit": 30,
+      "notes": "Snippet: 'Releases need to be JPEGs with filenames that are 30 characters or fewer.' StockMetaLint splits the cell on commas; the multi-release separator is not confirmed.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-GUIDANCE-KEYWORDS-49",
+      "title": "More than 49 keywords (guidance advisory)",
+      "severity": "warning",
+      "scope": "adobe-guidance",
+      "source_id": "adobe-tips-titles-keywords",
+      "source_url": "https://helpx.adobe.com/stock/contributor/content-policies-guidelines/metadata/tips-effective-titles-keywords.html",
+      "source_updated": "2026-09",
+      "verified_at": null,
+      "verification": "snippet-corroborated",
+      "description": "Advisory, editorial profile only: Adobe guidance pages say keywords can be added 'up to 49 per content submission', while the CSV requirements page allows 50. Never applied by default.",
+      "limit": 49,
+      "notes": "The project brief attributes the 49 figure to the editorial submission guide; search snippets show it on general guidance pages too. Scoped separately from ADOBE-CSV-KEYWORDS-MAX.",
+      "profiles": [
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-MEDIA-IMAGE-MEGAPIXELS",
+      "title": "Photo resolution outside 4-100 MP",
+      "severity": "warning",
+      "scope": "adobe-media",
+      "source_id": "adobe-photo-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/submit-your-content/submit-photos/technical-legal-requirements-photo-submission.html",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "summary-corroborated",
+      "description": "Inspect mode, JPEG only: image resolution is below 4 or above 100 megapixels.",
+      "limit": "4-100",
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-MEDIA-IMAGE-FILE-SIZE",
+      "title": "Photo file larger than 45 MB",
+      "severity": "warning",
+      "scope": "adobe-media",
+      "source_id": "adobe-photo-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/submit-your-content/submit-photos/technical-legal-requirements-photo-submission.html",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "summary-corroborated",
+      "description": "Inspect mode, JPEG only: file is larger than 45,000,000 bytes.",
+      "limit": 45000000,
+      "notes": "MB vs MiB is not documented; the decimal value is the conservative choice.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-MEDIA-VIDEO-CODEC",
+      "title": "Video codec is not H.264",
+      "severity": "warning",
+      "scope": "adobe-media",
+      "source_id": "adobe-video-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/help/video-requirements.html",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "summary-corroborated",
+      "description": "Inspect mode with ffprobe: the first video stream is not H.264.",
+      "limit": "h264",
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ADOBE-MEDIA-VIDEO-DURATION",
+      "title": "Video duration outside 5-60 seconds",
+      "severity": "warning",
+      "scope": "adobe-media",
+      "source_id": "adobe-video-requirements",
+      "source_url": "https://helpx.adobe.com/stock/contributor/help/video-requirements.html",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "summary-corroborated",
+      "description": "Inspect mode with ffprobe: container duration is below 5 or above 60 seconds.",
+      "limit": "5-60",
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    }
+  ]
+}

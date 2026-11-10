@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hanifwidi/stockmetalint/blob/main/src/stockmetalint/schemas/report-v1.schema.json",
+  "title": "StockMetaLint lint report",
+  "description": "Report emitted by `stockmetalint lint --format json` (schema_version 1.x).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "tool", "tool_version", "platform", "profile", "rule_profile_version",
+    "rule_verification", "source_file", "checked_at", "disclaimer", "summary", "diagnostics"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "pattern": "^1\\.[0-9]+$"},
+    "tool": {"const": "stockmetalint"},
+    "tool_version": {"type": "string"},
+    "platform": {"type": "string"},
+    "profile": {"enum": ["standard", "editorial"]},
+    "rule_profile_version": {"type": "string"},
+    "rule_verification": {"enum": ["verified", "unverified"]},
+    "source_file": {"type": "string"},
+    "checked_at": {"type": ["string", "null"], "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+    "disclaimer": {"type": "string"},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["errors", "warnings", "info", "total", "data_rows", "fatal", "assets_checked",
+                   "media_inspected", "exit_code"],
+      "properties": {
+        "errors": {"type": "integer", "minimum": 0},
+        "warnings": {"type": "integer", "minimum": 0},
+        "info": {"type": "integer", "minimum": 0},
+        "total": {"type": "integer", "minimum": 0},
+        "data_rows": {"type": ["integer", "null"], "minimum": 0},
+        "fatal": {"type": "boolean"},
+        "assets_checked": {"type": "boolean"},
+        "media_inspected": {"type": "boolean"},
+        "exit_code": {"enum": [0, 1]}
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["severity", "code", "scope", "source_url", "line", "row", "column", "filename",
+                     "message", "suggestion"],
+        "properties": {
+          "severity": {"enum": ["error", "warning", "info"]},
+          "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9]*(-[A-Z0-9]+)+$"},
+          "scope": {"type": "string"},
+          "source_url": {"type": ["string", "null"]},
+          "line": {"type": ["integer", "null"], "minimum": 1},
+          "row": {"type": ["integer", "null"], "minimum": 1},
+          "column": {"type": ["string", "null"]},
+          "filename": {"type": ["string", "null"]},
+          "message": {"type": "string", "minLength": 1},
+          "suggestion": {"type": ["string", "null"]}
+        }
+      }
+    }
+  }
+}

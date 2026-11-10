@@ -1,0 +1,861 @@
+{
+  "registry_format": 1,
+  "profile_id": "stockmetalint-core-1",
+  "title": "StockMetaLint tool-defined rules (CSV structure, hygiene, integrity, security, assets)",
+  "sources": {
+    "stockmetalint": {
+      "title": "StockMetaLint rule documentation (tool-defined rules)",
+      "url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md",
+      "page_updated": null,
+      "page_updated_basis": "Versioned with the tool.",
+      "verification": "tool-defined",
+      "evidence_accessed": null,
+      "evidence": "Defined by StockMetaLint; not an Adobe policy."
+    },
+    "rfc4180": {
+      "title": "RFC 4180: Common Format and MIME Type for Comma-Separated Values (CSV) Files",
+      "url": "https://www.rfc-editor.org/rfc/rfc4180",
+      "page_updated": "2005-10",
+      "page_updated_basis": "RFC publication date.",
+      "verification": "standard-reference",
+      "evidence_accessed": null,
+      "evidence": "Public standard cited from maintainer knowledge; not re-fetched in this build."
+    },
+    "owasp-csv-injection": {
+      "title": "OWASP: CSV Injection",
+      "url": "https://owasp.org/www-community/attacks/CSV_Injection",
+      "page_updated": null,
+      "page_updated_basis": "Unknown.",
+      "verification": "standard-reference",
+      "evidence_accessed": null,
+      "evidence": "Public guidance cited from maintainer knowledge; not re-fetched in this build."
+    },
+    "unicode-uax15": {
+      "title": "Unicode Standard Annex #15: Unicode Normalization Forms",
+      "url": "https://www.unicode.org/reports/tr15/",
+      "page_updated": null,
+      "page_updated_basis": "Versioned with the Unicode Standard.",
+      "verification": "standard-reference",
+      "evidence_accessed": null,
+      "evidence": "Public standard cited from maintainer knowledge; not re-fetched in this build."
+    },
+    "unicode-tr36": {
+      "title": "Unicode Technical Report #36: Unicode Security Considerations",
+      "url": "https://www.unicode.org/reports/tr36/",
+      "page_updated": null,
+      "page_updated_basis": "Versioned with the Unicode Standard.",
+      "verification": "standard-reference",
+      "evidence_accessed": null,
+      "evidence": "Public standard cited from maintainer knowledge; not re-fetched in this build."
+    },
+    "whatwg-maxlength": {
+      "title": "HTML Standard: the maxlength attribute (counts UTF-16 code units)",
+      "url": "https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#attr-fe-maxlength",
+      "page_updated": null,
+      "page_updated_basis": "Living standard.",
+      "verification": "standard-reference",
+      "evidence_accessed": null,
+      "evidence": "Public standard cited from maintainer knowledge; not re-fetched in this build."
+    }
+  },
+  "rules": [
+    {
+      "rule_id": "CSV-FILE-EMPTY",
+      "title": "CSV file is empty",
+      "severity": "error",
+      "scope": "csv-structure",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#csv-file-empty",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "The file has no content: 0 bytes, or only a byte-order mark and/or whitespace.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "CSV-FILE-BINARY",
+      "title": "File is a binary format, not CSV text",
+      "severity": "error",
+      "scope": "csv-structure",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#csv-file-binary",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "The leading bytes identify a binary format such as an Excel .xlsx/.xls workbook, PDF, ZIP or image. Export the sheet as 'CSV UTF-8 (Comma delimited)' instead.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "CSV-NUL-BYTE",
+      "title": "File contains NUL bytes",
+      "severity": "error",
+      "scope": "csv-structure",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#csv-nul-byte",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "The file contains NUL (0x00) bytes, typical of UTF-16 text or binary data. Row checks are skipped.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "CSV-ENCODING-BOM",
+      "title": "UTF-8 byte-order mark present (accepted)",
+      "severity": "info",
+      "scope": "csv-structure",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#csv-encoding-bom",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "A UTF-8 byte-order mark (EF BB BF) starts the file. Excel's 'CSV UTF-8' format writes one; StockMetaLint accepts it and excludes it from header names.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "CSV-MALFORMED",
+      "title": "Malformed CSV structure",
+      "severity": "error",
+      "scope": "csv-structure",
+      "source_id": "rfc4180",
+      "source_url": "https://www.rfc-editor.org/rfc/rfc4180",
+      "source_updated": "2005-10",
+      "verified_at": null,
+      "verification": "standard-reference",
+      "description": "A record could not be parsed: for example an unterminated quoted field, text after a closing quote, or a field larger than 128 KiB. Parsing stops at the first malformed record; earlier rows are still checked.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "CSV-ROW-FIELD-COUNT",
+      "title": "Record has the wrong number of fields",
+      "severity": "error",
+      "scope": "csv-structure",
+      "source_id": "rfc4180",
+      "source_url": "https://www.rfc-editor.org/rfc/rfc4180",
+      "source_updated": "2005-10",
+      "verified_at": null,
+      "verification": "standard-reference",
+      "description": "A record has a different number of fields than the header. Unquoted commas inside Keywords are the usual cause: the whole keyword list must be one double-quoted cell. Rows with extra fields are not content-checked because their columns cannot be aligned reliably.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "CSV-BLANK-ROW",
+      "title": "Blank record between data rows",
+      "severity": "warning",
+      "scope": "csv-structure",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#csv-blank-row",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "A blank or all-empty record appears after the header. StockMetaLint skips it and does not count it as a data row, but other tools may count or reject it.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "META-WHITESPACE",
+      "title": "Leading or trailing whitespace",
+      "severity": "info",
+      "scope": "hygiene",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#meta-whitespace",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "A cell starts or ends with whitespace. In Filename this can prevent exact asset matching.",
+      "limit": null,
+      "notes": "The trim-whitespace fix never modifies Filename cells; rename consistently instead.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": "trim-whitespace"
+    },
+    {
+      "rule_id": "META-CONTROL-CHAR",
+      "title": "Control character in a cell",
+      "severity": "warning",
+      "scope": "hygiene",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#meta-control-char",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "A cell contains a tab, line break or other control character (for example a multi-line title inside quotes).",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "META-UNICODE-NFC",
+      "title": "Text is not Unicode NFC",
+      "severity": "info",
+      "scope": "hygiene",
+      "source_id": "unicode-uax15",
+      "source_url": "https://www.unicode.org/reports/tr15/",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "standard-reference",
+      "description": "Text is not in Unicode Normalization Form C, so visually identical strings can differ in bytes (common for accented names created on macOS).",
+      "limit": null,
+      "notes": "The nfc fix applies to Title and Keywords only, never to Filename.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": "nfc"
+    },
+    {
+      "rule_id": "META-LENGTH-UTF16",
+      "title": "Over a length limit when counted in UTF-16 units",
+      "severity": "warning",
+      "scope": "hygiene",
+      "source_id": "whatwg-maxlength",
+      "source_url": "https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#attr-fe-maxlength",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "standard-reference",
+      "description": "The value is within its limit in Unicode code points but over it in UTF-16 code units, which is what HTML form maxlength counts (emoji and other astral characters count as two).",
+      "limit": null,
+      "notes": "Which unit Adobe's backend counts is not documented; this advisory flags the ambiguity.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "META-FILENAME-PORTABILITY",
+      "title": "Filename is not portable across operating systems",
+      "severity": "warning",
+      "scope": "hygiene",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#meta-filename-portability",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "The filename uses characters or names that are invalid on Windows: < > : \" | ? *, control characters, reserved device names such as CON, PRN, AUX, NUL, COM1 or LPT1, or a trailing dot or space.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "META-KEYWORD-DUPLICATE",
+      "title": "Duplicate keyword in a row",
+      "severity": "warning",
+      "scope": "hygiene",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#meta-keyword-duplicate",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "The same keyword appears more than once in a row, compared case-insensitively after collapsing whitespace. Original spellings and order are preserved in the report.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": "dedupe-keywords"
+    },
+    {
+      "rule_id": "META-KEYWORD-DUPLICATE-NFKC",
+      "title": "Keywords identical after NFKC normalization",
+      "severity": "info",
+      "scope": "hygiene",
+      "source_id": "unicode-uax15",
+      "source_url": "https://www.unicode.org/reports/tr15/",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "standard-reference",
+      "description": "Two keywords differ only by Unicode compatibility forms (for example full-width and ASCII letters, or ligatures). Reported as a suggestion; originals are never altered.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "META-KEYWORD-EMPTY-ITEM",
+      "title": "Empty keyword item",
+      "severity": "warning",
+      "scope": "hygiene",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#meta-keyword-empty-item",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "The Keywords cell contains empty items, e.g. 'sky,,sun', a leading comma or a trailing comma.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": "drop-empty-keywords"
+    },
+    {
+      "rule_id": "META-KEYWORD-SEPARATOR",
+      "title": "Keyword contains a non-comma separator",
+      "severity": "warning",
+      "scope": "heuristic",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#meta-keyword-separator",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "HEURISTIC: a keyword contains a semicolon, vertical bar, or a non-ASCII comma (full-width, ideographic or Arabic). Keywords are separated by ASCII commas, so this is probably several keywords that will be read as one.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "META-KEYWORD-LOW-VALUE",
+      "title": "Technical or filler keyword in the first 10",
+      "severity": "info",
+      "scope": "heuristic",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#meta-keyword-low-value",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "HEURISTIC: one of the first 10 keywords looks like technical data or a generic filler term (file type, resolution, camera setting, 'stock photo'). The word list is StockMetaLint's own; it cannot judge relevance and is only a suggestion.",
+      "limit": null,
+      "notes": "Related Adobe guidance: the CSV requirements page asks contributors not to include technical data in keywords.",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "BATCH-FILENAME-DUPLICATE",
+      "title": "Same Filename in several rows",
+      "severity": "error",
+      "scope": "integrity",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#batch-filename-duplicate",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "The same Filename appears in more than one data row, so it is ambiguous which metadata applies.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "BATCH-FILENAME-CASE-COLLISION",
+      "title": "Filenames differ only by case",
+      "severity": "warning",
+      "scope": "integrity",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#batch-filename-case-collision",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "Two Filename values differ only by letter case. On Windows and default macOS file systems they name the same file.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "BATCH-FILENAME-UNICODE-COLLISION",
+      "title": "Filenames equal after Unicode normalization",
+      "severity": "warning",
+      "scope": "integrity",
+      "source_id": "unicode-uax15",
+      "source_url": "https://www.unicode.org/reports/tr15/",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "standard-reference",
+      "description": "Two Filename values are canonically equivalent (identical after NFC) but differ in bytes.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "BATCH-TITLE-DUPLICATE",
+      "title": "Identical title used for several files",
+      "severity": "warning",
+      "scope": "integrity",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#batch-title-duplicate",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "REVIEW: the same title (case- and whitespace-insensitive) is used in several rows. This is not an automatic Adobe rejection; check that each title describes its own asset.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "BATCH-KEYWORDS-IDENTICAL",
+      "title": "Identical keyword sets",
+      "severity": "warning",
+      "scope": "integrity",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#batch-keywords-identical",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "REVIEW: several rows have exactly the same set of keywords. This is not an automatic rejection; series of similar files often still need individual keywords.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "BATCH-KEYWORDS-NEAR-DUPLICATE",
+      "title": "Near-duplicate keyword sets",
+      "severity": "warning",
+      "scope": "heuristic",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#batch-keywords-near-duplicate",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "HEURISTIC REVIEW: rows with at least 10 keywords share the same set of their first 10 normalized keywords while their full sets differ.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "SEC-FORMULA-PREFIX",
+      "title": "Cell could be executed as a spreadsheet formula",
+      "severity": "warning",
+      "scope": "security",
+      "source_id": "owasp-csv-injection",
+      "source_url": "https://owasp.org/www-community/attacks/CSV_Injection",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "standard-reference",
+      "description": "A cell starts with =, +, -, @, tab or carriage return (or with = + - @ after spaces). If the CSV is opened in a spreadsheet, the cell may be evaluated as a formula. StockMetaLint never writes such cells unescaped in fix output.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "SEC-INVISIBLE-CHAR",
+      "title": "Bidirectional control or invisible character",
+      "severity": "warning",
+      "scope": "security",
+      "source_id": "unicode-tr36",
+      "source_url": "https://www.unicode.org/reports/tr36/",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "standard-reference",
+      "description": "Text contains bidirectional control characters (e.g. U+202E) or invisible characters (e.g. U+200B) that can disguise what is displayed. In Filename, zero-width joiners are reported too.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-MISSING",
+      "title": "No asset file matches the Filename",
+      "severity": "error",
+      "scope": "assets",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-missing",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "With --assets, no file in the asset directory has exactly this name (exact spelling and case).",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-CASE-MISMATCH",
+      "title": "Asset matches only when ignoring case",
+      "severity": "error",
+      "scope": "assets",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-case-mismatch",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "A file matches the Filename only when letter case is ignored. Exact names are required.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-UNICODE-MISMATCH",
+      "title": "Asset matches only after Unicode normalization",
+      "severity": "error",
+      "scope": "assets",
+      "source_id": "unicode-uax15",
+      "source_url": "https://www.unicode.org/reports/tr15/",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "standard-reference",
+      "description": "A file matches the Filename only after Unicode normalization (NFC/NFD), typically a name created on macOS.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-ORPHAN",
+      "title": "Asset file without a CSV row",
+      "severity": "warning",
+      "scope": "assets",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-orphan",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "A file in the asset directory is not referenced by any row, so this CSV gives it no metadata. Hidden files (starting with '.'), Thumbs.db and desktop.ini are ignored.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-DIR-EMPTY",
+      "title": "Asset directory has no files",
+      "severity": "warning",
+      "scope": "assets",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-dir-empty",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "The asset directory contains no candidate files (hidden files are ignored).",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-CASE-COLLISION",
+      "title": "Asset files differ only by case",
+      "severity": "warning",
+      "scope": "assets",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-case-collision",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "Two files in the asset directory differ only by letter case and collide on case-insensitive file systems.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-AMBIGUOUS",
+      "title": "Same asset name in several subdirectories",
+      "severity": "warning",
+      "scope": "assets",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-ambiguous",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "With --recursive, the same file name exists in more than one subdirectory, so the match is ambiguous.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-SYMLINK-ESCAPE",
+      "title": "Asset symlink points outside the asset directory",
+      "severity": "error",
+      "scope": "assets",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-symlink-escape",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "The matching entry is a symbolic link resolving outside the asset directory. It is not followed or read.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-SYMLINK-BROKEN",
+      "title": "Asset symlink is broken",
+      "severity": "error",
+      "scope": "assets",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-symlink-broken",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "The matching entry is a symbolic link whose target does not exist.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-NOT-REGULAR-FILE",
+      "title": "Asset is not a regular file",
+      "severity": "error",
+      "scope": "assets",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-not-regular-file",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "The matching entry is a directory or special file (FIFO, socket, device), not a regular file.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-EMPTY-FILE",
+      "title": "Asset file is empty",
+      "severity": "error",
+      "scope": "assets",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-empty-file",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "The matching file has a size of 0 bytes.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-RELEASE-MISSING",
+      "title": "Release file not found locally",
+      "severity": "warning",
+      "scope": "assets",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-release-missing",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "With --releases, a release name from the Releases column has no file in that directory with the exact name or the name plus .jpg/.jpeg. Releases are normally uploaded to the platform separately; this only checks your local copy.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-SIGNATURE-MISMATCH",
+      "title": "File content does not match its extension",
+      "severity": "error",
+      "scope": "media-format",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-signature-mismatch",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "FORMAT CHECK: the file's leading bytes do not match its extension (for example a PNG renamed to .jpg). This validates file format only, not content policy.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-UNSUPPORTED-TYPE",
+      "title": "File type not inspectable",
+      "severity": "info",
+      "scope": "media-format",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-unsupported-type",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "FORMAT CHECK: StockMetaLint cannot inspect this extension; the file was matched by name only.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-DECODE-FAILED",
+      "title": "Image could not be decoded",
+      "severity": "error",
+      "scope": "media-format",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-decode-failed",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "FORMAT CHECK: Pillow could not decode the image (corrupt or truncated). This validates file format only, not Adobe content policy or quality.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-VIDEO-UNREADABLE",
+      "title": "Video container could not be read",
+      "severity": "error",
+      "scope": "media-format",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-video-unreadable",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "FORMAT CHECK: ffprobe could not read the container or found no video stream.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    },
+    {
+      "rule_id": "ASSET-INSPECT-INCONCLUSIVE",
+      "title": "Inspection inconclusive",
+      "severity": "info",
+      "scope": "media-format",
+      "source_id": "stockmetalint",
+      "source_url": "https://github.com/hanifwidi/stockmetalint/blob/main/docs/rules.md#asset-inspect-inconclusive",
+      "source_updated": null,
+      "verified_at": null,
+      "verification": "tool-defined",
+      "description": "INCONCLUSIVE: an optional inspection tool (Pillow or ffprobe) is unavailable, failed or timed out, so the affected files were not verified. This is not a pass.",
+      "limit": null,
+      "notes": "",
+      "profiles": [
+        "standard",
+        "editorial"
+      ],
+      "fix_rule": null
+    }
+  ]
+}
