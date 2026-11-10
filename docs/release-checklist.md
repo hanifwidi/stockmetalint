@@ -15,11 +15,11 @@ upload exists or may be created without the owner's explicit approval.**
 
 ## Before tagging
 
-- [ ] CI green on `main` for the release commit (all OS × Python jobs, package, audit)
-- [ ] Adobe rules re-verified on live pages, or the release notes clearly say "unverified"
-- [ ] `CHANGELOG.md` has the release date; `_version.py` is `0.1.0`
+- [x] CI green on `main` for merge commit 7941ecf (15/15 checks, 2026-11-10)
+- [x] Release notes clearly say the Adobe rules are "unverified" (live re-verification still open)
+- [x] `CHANGELOG.md` has the release date (2026-11-10); `_version.py` is `0.1.0`
 - [ ] README quickstart re-run on a clean machine
-- [ ] Name similarity with "StockMeta Pro" considered and accepted by the owner
+- [x] Owner approved release of v0.1.0 on 2026-11-10 (including the name)
 
 ## One-time PyPI Trusted Publisher setup (owner only)
 
