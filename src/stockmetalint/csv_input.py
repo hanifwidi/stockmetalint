@@ -25,6 +25,8 @@ from stockmetalint.errors import InputError
 DEFAULT_MAX_INPUT_BYTES = 32 * 1024 * 1024
 UTF8_BOM = b"\xef\xbb\xbf"
 _MAX_ENCODING_REPORTS = 5
+#: Individual CSV-BLANK-ROW diagnostics before they are summarized (bounds memory).
+MAX_BLANK_ROW_REPORTS = 20
 
 _TEXT_BOMS: tuple[tuple[bytes, str], ...] = (
     (b"\xff\xfe\x00\x00", "UTF-32 LE"),
@@ -79,6 +81,8 @@ class ParsedCsv:
     unreadable: bool
     #: True when parsing stopped early at a malformed record.
     parse_stopped: bool
+    #: Physical lines of blank/all-empty records after the header (not reproduced by fix).
+    blank_lines: tuple[int, ...] = ()
 
 
 def read_input_bytes(path: Path, max_bytes: int = DEFAULT_MAX_INPUT_BYTES) -> bytes:
@@ -102,7 +106,7 @@ def read_input_bytes(path: Path, max_bytes: int = DEFAULT_MAX_INPUT_BYTES) -> by
         )
     try:
         with path.open("rb") as handle:
-            data = handle.read(max_bytes + 1)
+            data = handle.read(min(max_bytes, st.st_size) + 1)
     except PermissionError:
         raise InputError(f"permission denied reading input: {path}") from None
     except OSError as exc:
@@ -225,6 +229,15 @@ def _parse_text(text: str, size: int, had_bom: bool, emit: Emit) -> ParsedCsv:
     header_line: int | None = None
     records: list[CsvRecord] = []
     pending_blank: list[tuple[int, bool]] = []  # (line, had_fields)
+    blank_lines: list[int] = []
+    blank_reports = 0
+
+    def report_blank(line: int, message: str, suggestion: str) -> None:
+        nonlocal blank_reports
+        blank_reports += 1
+        if blank_reports <= MAX_BLANK_ROW_REPORTS:
+            emit("CSV-BLANK-ROW", message, line=line, suggestion=suggestion)
+
     parse_stopped = False
     row_index = 0
     while True:
@@ -264,11 +277,11 @@ def _parse_text(text: str, size: int, had_bom: bool, emit: Emit) -> ParsedCsv:
             header_line = start_line
             continue
         for blank_line, _ in pending_blank:
-            emit(
-                "CSV-BLANK-ROW",
+            blank_lines.append(blank_line)
+            report_blank(
+                blank_line,
                 "Blank or all-empty record between data rows (skipped).",
-                line=blank_line,
-                suggestion="Delete the empty line.",
+                "Delete the empty line.",
             )
         pending_blank.clear()
         row_index += 1
@@ -276,14 +289,21 @@ def _parse_text(text: str, size: int, had_bom: bool, emit: Emit) -> ParsedCsv:
 
     # Trailing truly-blank lines are harmless; trailing ",,,," records are not.
     for blank_line, had_fields in pending_blank:
+        blank_lines.append(blank_line)
         if had_fields:
-            emit(
-                "CSV-BLANK-ROW",
+            report_blank(
+                blank_line,
                 "All-empty record at the end of the file (for example ',,,,' "
                 "exported from formatted spreadsheet rows).",
-                line=blank_line,
-                suggestion="Delete the empty rows in the spreadsheet before exporting.",
+                "Delete the empty rows in the spreadsheet before exporting.",
             )
+    if blank_reports > MAX_BLANK_ROW_REPORTS:
+        emit(
+            "CSV-BLANK-ROW",
+            f"{blank_reports - MAX_BLANK_ROW_REPORTS} more blank or all-empty records not listed "
+            f"individually ({blank_reports} in total).",
+            suggestion="Delete the empty lines.",
+        )
     return ParsedCsv(
         size_bytes=size,
         had_bom=had_bom,
@@ -293,6 +313,7 @@ def _parse_text(text: str, size: int, had_bom: bool, emit: Emit) -> ParsedCsv:
         records=tuple(records),
         unreadable=False,
         parse_stopped=parse_stopped,
+        blank_lines=tuple(blank_lines),
     )
 
 

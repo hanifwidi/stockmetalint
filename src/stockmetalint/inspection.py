@@ -22,6 +22,8 @@ from stockmetalint.asset_inventory import AssetEntry
 from stockmetalint.validators.context import LintContext, RowView
 
 HEAD_BYTES = 1024
+#: Images above this pixel count are only decoded when JPEG draft scaling applies.
+MAX_DECODE_PIXELS = 40_000_000
 FFPROBE_TIMEOUT_SECONDS = 30
 
 EXTENSION_KINDS: dict[str, tuple[str, ...]] = {
@@ -83,7 +85,8 @@ def load_pillow() -> ModuleType | None:
 
 
 def find_ffprobe() -> str | None:
-    return shutil.which("ffprobe")
+    # Pass PATH explicitly so Windows does not search the current directory first.
+    return shutil.which("ffprobe", path=os.environ.get("PATH", os.defpath))
 
 
 def inspect_assets(
@@ -181,6 +184,16 @@ def _check_image(
         try:
             with image.open(entry.path) as img:
                 width, height = img.size
+                progressive = bool(img.info.get("progressive") or img.info.get("progression"))
+                if width * height > MAX_DECODE_PIXELS and (not is_jpeg or progressive):
+                    ctx.emit(
+                        "ASSET-INSPECT-INCONCLUSIVE",
+                        f'"{entry.relpath}" is {width}x{height}; too large to decode safely '
+                        "(dimension checks only).",
+                        **loc,
+                    )
+                    _megapixel_advisory(ctx, entry, loc, width, height, is_jpeg=is_jpeg)
+                    return
                 if is_jpeg:
                     # Decode at 1/8 scale: the whole entropy-coded stream is still read
                     # (so truncation/corruption is detected) with ~64x less memory.
@@ -196,11 +209,24 @@ def _check_image(
         except Exception as exc:  # noqa: BLE001 - Pillow raises many exception types for bad data
             ctx.emit(
                 "ASSET-DECODE-FAILED",
-                f'"{entry.relpath}" could not be decoded: {type(exc).__name__}: {exc}',
+                f'"{entry.relpath}" could not be decoded: {type(exc).__name__}: '
+                f"{str(exc).replace(str(entry.path), entry.relpath)}",
                 **loc,
                 suggestion="Re-export the image; the file is corrupt or truncated.",
             )
             return
+    _megapixel_advisory(ctx, entry, loc, width, height, is_jpeg=is_jpeg)
+
+
+def _megapixel_advisory(
+    ctx: LintContext,
+    entry: AssetEntry,
+    loc: dict[str, Any],
+    width: int,
+    height: int,
+    *,
+    is_jpeg: bool,
+) -> None:
     if is_jpeg:
         low, high = ctx.registry.range_limit("ADOBE-MEDIA-IMAGE-MEGAPIXELS")
         megapixels = width * height / 1_000_000

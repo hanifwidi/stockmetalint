@@ -10,10 +10,10 @@ results on GitHub are not listed here because they live in the Actions run logs 
 | Lint | `ruff check src tests scripts` | All checks passed |
 | Format | `ruff format --check src tests scripts` | 43 files already formatted |
 | Types | `mypy` (strict, 27 source files) | Success: no issues found |
-| Tests, Python 3.11.18 | `python -m pytest` | **297 passed**, 0 skipped, 0 failed |
-| Tests, Python 3.12.3 | `python -m pytest --cov=stockmetalint --cov-branch` | **297 passed**, 0 skipped, 0 failed |
-| Tests, Python 3.13.18 | `python -m pytest` | **297 passed**, 0 skipped, 0 failed |
-| Coverage (3.12, branch) | see table below | **95.4 % total** |
+| Tests, Python 3.11.18 | `python -m pytest` | **315 passed**, 0 skipped, 0 failed |
+| Tests, Python 3.12.3 | `python -m pytest --cov=stockmetalint --cov-branch` | **315 passed**, 0 skipped, 0 failed |
+| Tests, Python 3.13.18 | `python -m pytest` | **315 passed**, 0 skipped, 0 failed |
+| Coverage (3.12, branch) | see table below (2026-11-09; 95.3 % after the 2026-11-10 fixes) | **95.4 % total** |
 | Build | `python -m build` | sdist + wheel built (`stockmetalint-0.1.0`) |
 | Metadata | `twine check --strict dist/*` | PASSED (both files) |
 | Wheel smoke | `python scripts/wheel_smoke.py dist/*.whl` (fresh venv, `--no-index --no-deps`) | 14/14 checks passed |
@@ -46,6 +46,42 @@ video-probe tests ran instead of being skipped.
 Uncovered lines are mostly OS-error branches (permission errors while listing directories,
 `OSError` during `stat`) that cannot be triggered portably when tests run as root, plus a
 few defensive fallbacks. No branch was excluded to raise the number.
+
+## Adversarial review — 2026-11-10
+
+An 8-dimension review workflow (parsing, Adobe rules, asset security, fix/IO safety, CLI contract,
+cross-platform CI, spec honesty, test quality) reported about 40 candidate defects. Independent
+verification finished for only part of them because the account usage limit was reached. Every
+issue listed below was reproduced and fixed, and each has a regression test in
+`tests/integration/test_review_regressions.py`:
+
+* `fix` silently dropped all rows after a malformed record and exited 0 → now refuses (exit 1,
+  nothing written).
+* `--ignore` on a fatal rule turned an unreadable file into PASS → fatal reports always exit 1.
+* The audit log overwrote existing files without `--overwrite` → now requires it; the audit is
+  written first and removed if the CSV write fails.
+* FIFOs and devices were accepted as `--output` → refused.
+* A near-miss header ("Titles") claimed the column of a later exact header → exact headers win.
+* A Category with >4,300 digits crashed (int conversion limit) → handled.
+* Cells containing only zero-width characters passed required checks → now treated as empty.
+* NFC/NFD-equivalent keywords were not duplicates → keyword keys are NFC-normalized.
+* A near-duplicate check was skipped after an identical row → fixed.
+* One diagnostic per blank line allowed memory exhaustion → capped at 20 plus a summary; `fix`
+  records dropped blank records in the audit log.
+* Non-UTF-8 file names crashed JSON output → encoded with escapes.
+* PNG/progressive JPEG bombs below Pillow's limit were fully decoded → >40 MP is not decoded
+  (INCONCLUSIVE, dimensions only).
+* Pillow errors leaked absolute paths → scrubbed.
+* `ffprobe` lookup could search the current directory on Windows → explicit PATH.
+* Windows directory junctions were not treated like symlinks → now classified and never followed.
+* Release extensions were case-sensitive, a "closest file" hint was quadratic, an out-of-range
+  `SOURCE_DATE_EPOCH` crashed, usage errors echoed escape sequences, and string paths broke the
+  library API → all fixed.
+* A test (`test_case_variant_alias...`) would have failed on macOS/Windows → corrected.
+
+Not changed (judged acceptable or deferred): an extension check that accepts any final dot segment,
+and `PASS` with INCONCLUSIVE inspection info (documented: INCONCLUSIVE is not a pass, but it does
+not block).
 
 ## What the suite proves
 

@@ -33,11 +33,11 @@ is labelled `snippet-corroborated`, `summary-corroborated` or `partially-corrobo
 * Discrepancy: 50 keywords (CSV) vs 49 (guidance). Modelled as separate scopes; the 49 figure is
   a non-blocking `editorial` advisory (`docs/rule-discrepancies.md`).
 
-## Tests (executed locally on 2026-11-09)
+## Tests (executed locally on 2026-11-09, re-run 2026-11-10)
 
 * `ruff check`, `ruff format --check`: clean. `mypy --strict`: no issues (27 files).
-* pytest: **297 passed, 0 skipped** on Python 3.11.18, 3.12.3 and 3.13.18 (Linux).
-* Branch coverage **95.4 %** total; validators 99–100 %.
+* pytest: **315 passed, 0 skipped** on Python 3.11.18, 3.12.3 and 3.13.18 (Linux).
+* Branch coverage **95.3 %** total; validators 99–100 %.
 * `python -m build` + `twine check --strict`: passed. Offline fresh-venv wheel smoke: 14/14.
 * README quickstart replayed in a clean clone: all exit codes as documented.
 * pip-audit: no known vulnerabilities. actionlint: no issues.

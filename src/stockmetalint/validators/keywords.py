@@ -13,6 +13,7 @@ from typing import Any
 from stockmetalint.textutil import (
     SUSPICIOUS_KEYWORD_SEPARATORS,
     excerpt,
+    is_visibly_blank,
     keyword_key,
     keyword_key_nfkc,
 )
@@ -76,7 +77,7 @@ def split_keywords(cell: str) -> tuple[list[Keyword], int]:
     empty = 0
     for raw in items:
         text = raw.strip()
-        if text:
+        if text and not is_visibly_blank(text):
             keywords.append(Keyword(len(keywords) + 1, text))
         else:
             empty += 1

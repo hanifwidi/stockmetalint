@@ -256,5 +256,8 @@ def plan_fixes(
                 current = rendered
         fields[kw_index] = current
 
+    for blank_line in parsed.blank_lines:
+        # Blank/all-empty records are not reproduced in the output; record that explicitly.
+        plan.changes.append(Change(blank_line, None, "record", "drop-blank-record", "(blank)", ""))
     plan.scan_formulas()
     return plan

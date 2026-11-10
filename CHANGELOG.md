@@ -6,6 +6,16 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed (adversarial review, 2026-11-10)
+
+- `fix` now refuses to write when parsing stopped at a malformed record (previously rows after it
+  were silently dropped with exit 0).
+- Fatal reports always exit 1, even with `--ignore`; audit logs honour `--overwrite`; non-regular
+  output paths are refused; exact headers take precedence over near-miss headers; NFC-equivalent
+  keywords are duplicates; invisible-only cells count as empty; bounded blank-row diagnostics;
+  decompression-bomb, path-leak, Windows junction and `ffprobe` lookup hardening. Regression tests
+  are in `tests/integration/test_review_regressions.py`.
+
 ### Added
 
 - `stockmetalint` CLI with `--version`, `doctor`, `rules list|show`, `lint` and `fix`, plus a

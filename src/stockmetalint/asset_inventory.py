@@ -29,6 +29,9 @@ IGNORED_NAMES = frozenset({"thumbs.db", "desktop.ini", "ehthumbs.db"})
 MAX_ENTRIES = 200_000
 MAX_DEPTH = 32
 RELEASE_EXTENSIONS = (".jpg", ".jpeg")
+#: Bound the cost of 'closest file' hints (difflib is quadratic).
+MAX_HINTS = 50
+MAX_HINT_CANDIDATES = 2000
 
 
 class EntryKind(enum.Enum):
@@ -58,6 +61,18 @@ class AssetInventory:
     def files(self) -> list[AssetEntry]:
         """Candidate media entries (everything except directories)."""
         return [e for e in self.entries if e.kind is not EntryKind.DIRECTORY]
+
+
+def _is_junction(item: os.DirEntry[str]) -> bool:
+    """Windows directory junctions behave like symlinks but are not reported as such."""
+    probe = getattr(item, "is_junction", None)
+    if probe is not None:
+        return bool(probe())
+    try:  # Python 3.11 on Windows
+        tag = getattr(item.stat(follow_symlinks=False), "st_reparse_tag", 0)
+    except OSError:
+        return False
+    return bool(tag == 0xA0000003)
 
 
 def _classify_symlink(path: Path, root: Path) -> tuple[EntryKind, int | None]:
@@ -112,7 +127,7 @@ def scan_assets(root: Path, *, recursive: bool = False, label: str = "assets") -
                     continue
                 path = Path(item.path)
                 size: int | None = None
-                if item.is_symlink():
+                if item.is_symlink() or _is_junction(item):
                     kind, size = _classify_symlink(path, root_real)
                 elif item.is_dir(follow_symlinks=False):
                     kind = EntryKind.DIRECTORY
@@ -172,6 +187,8 @@ def check_assets(
             )
 
     referenced: set[str] = set()
+    file_names = [e.name for e in files]
+    hints_left = MAX_HINTS
     matched: list[tuple[RowView, AssetEntry]] = []
     for row in rows:
         name = row.filename
@@ -229,7 +246,12 @@ def check_assets(
                 suggestion="Remove the whitespace from the Filename cell.",
             )
         else:
-            close = difflib.get_close_matches(name, [e.name for e in files], n=1, cutoff=0.75)
+            hints_left -= 1
+            close = (
+                difflib.get_close_matches(name, file_names, n=1, cutoff=0.75)
+                if hints_left >= 0 and len(file_names) <= MAX_HINT_CANDIDATES
+                else []
+            )
             hint = f' Closest file: "{close[0]}".' if close else ""
             ctx.emit(
                 "ASSET-MISSING",
@@ -297,10 +319,11 @@ def check_releases(ctx: LintContext, rows: list[RowView], inventory: AssetInvent
         for name in (part.strip() for part in row.releases.split(",")):
             if not name:
                 continue
+            folded = {a.casefold() for a in available}
             candidates = [name] + [name + ext for ext in RELEASE_EXTENSIONS]
             if path_problem(name):
                 detail = "is not a bare file name, so it was not looked up"
-            elif not any(c in available for c in candidates):
+            elif name not in available and not any(c.casefold() in folded for c in candidates[1:]):
                 tried = name if PurePath(name).suffix else f"{name}, {name}.jpg, {name}.jpeg"
                 detail = f"was not found in the releases directory (tried {tried})"
             else:

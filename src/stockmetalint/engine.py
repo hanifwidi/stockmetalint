@@ -53,6 +53,10 @@ class Analysis:
 
 
 def validate_options(options: LintOptions) -> RuleRegistry:
+    for name in ("assets_dir", "releases_dir"):
+        value = getattr(options, name)
+        if value is not None and not isinstance(value, Path):
+            object.__setattr__(options, name, Path(value))  # accept str paths from library users
     registry = load_registry(options.platform)
     if options.profile not in PROFILES:
         raise ConfigError(f"unknown profile {options.profile!r}; choose from {', '.join(PROFILES)}")
@@ -71,7 +75,10 @@ def timestamp(*, reproducible: bool, now: datetime | None = None) -> str | None:
         epoch = os.environ.get("SOURCE_DATE_EPOCH", "")
         if not epoch.isdigit():
             return None
-        moment = datetime.fromtimestamp(int(epoch), UTC)
+        try:
+            moment = datetime.fromtimestamp(int(epoch), UTC)
+        except (OverflowError, OSError, ValueError):
+            return None
     else:
         moment = now or datetime.now(UTC)
     return moment.strftime("%Y-%m-%dT%H:%M:%SZ")

@@ -17,7 +17,7 @@ import sys
 import traceback
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, NoReturn
 
 from stockmetalint._version import __version__
 from stockmetalint.csv_input import DEFAULT_MAX_INPUT_BYTES, display_name
@@ -47,7 +47,7 @@ from stockmetalint.reporters.rules_report import (
 )
 from stockmetalint.reporters.text_report import DISCLAIMER, render_text, should_use_color
 from stockmetalint.rules.registry import PLATFORMS, PROFILES, load_registry
-from stockmetalint.safe_io import atomic_write_bytes, check_output_path, sha256_bytes
+from stockmetalint.safe_io import atomic_write_bytes, check_output_path, encode_text, sha256_bytes
 from stockmetalint.textutil import escape_for_terminal
 
 EXAMPLES = """\
@@ -75,8 +75,16 @@ def _positive_int(value: str) -> int:
     return number
 
 
+class _SafeArgumentParser(argparse.ArgumentParser):
+    """Escape control characters (e.g. from file names) in usage errors."""
+
+    def error(self, message: str) -> NoReturn:
+        self.print_usage(sys.stderr)
+        self.exit(2, f"{self.prog}: error: {escape_for_terminal(message)}\n")
+
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
+    parser = _SafeArgumentParser(
         prog="stockmetalint",
         description="Catch stock metadata problems before your batch upload. Offline preflight "
         "linter for Adobe Stock contributor CSV files.",
@@ -247,7 +255,7 @@ def _write_stdout(text: str) -> None:
     buffer = getattr(sys.stdout, "buffer", None)
     if buffer is not None:
         sys.stdout.flush()
-        buffer.write(text.encode("utf-8"))
+        buffer.write(encode_text(text))
         buffer.flush()
     else:  # pragma: no cover - exotic stdout replacements
         sys.stdout.write(text)
@@ -402,7 +410,7 @@ def _cmd_lint(args: argparse.Namespace) -> int:
             report, color=color, verbose=args.verbose, fail_on_warning=args.fail_on_warning
         )
     if args.output is not None:
-        atomic_write_bytes(args.output, text.encode("utf-8"))
+        atomic_write_bytes(args.output, encode_text(text))
         shown = display_name(args.output, show_paths=args.show_paths)
         _note(
             f"report written to {shown} ({report.summary.errors} error(s), "
@@ -456,12 +464,15 @@ def _cmd_fix(args: argparse.Namespace) -> int:
     if output is not None:
         check_output_path(output, protected=[args.csv], overwrite=args.overwrite)
         audit = audit or output.with_name(output.name + ".audit.json")
-        check_output_path(audit, protected=[args.csv, output], overwrite=True)
+        check_output_path(audit, protected=[args.csv, output], overwrite=args.overwrite)
 
     analysis = analyze_path(args.csv, options)
     source_name = analysis.report.source_file
-    if analysis.parsed.unreadable or analysis.mapping is None:
-        message = "cannot propose fixes: the CSV could not be read or has no usable header."
+    if analysis.parsed.unreadable or analysis.parsed.parse_stopped or analysis.mapping is None:
+        message = (
+            "cannot propose fixes: the CSV could not be fully parsed (unreadable, malformed "
+            "record or no usable header); nothing was written."
+        )
         if args.format == "json":
             _write_stdout(
                 dumps(
@@ -499,7 +510,6 @@ def _cmd_fix(args: argparse.Namespace) -> int:
     written = False
     if output is not None and not refused:
         assert audit is not None  # noqa: S101 - set together with output above
-        atomic_write_bytes(output, data)
         source_bytes = args.csv.read_bytes()
         audit_doc = {
             "schema_version": "1.0",
@@ -515,7 +525,15 @@ def _cmd_fix(args: argparse.Namespace) -> int:
             "changes": [c.to_dict() for c in plan.changes],
             "skipped_rows": plan.skipped_rows,
         }
-        atomic_write_bytes(audit, dumps(audit_doc).encode("utf-8"))
+        audit_existed = audit.exists()
+        atomic_write_bytes(audit, encode_text(dumps(audit_doc)))
+        try:
+            atomic_write_bytes(output, data)
+        except BaseException:
+            if not audit_existed:
+                with contextlib.suppress(OSError):
+                    audit.unlink()
+            raise
         written = True
 
     out_name = display_name(output, show_paths=args.show_paths) if output else None

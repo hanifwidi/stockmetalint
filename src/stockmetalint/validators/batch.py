@@ -107,8 +107,8 @@ def check_batch(ctx: LintContext, rows: list[RowView]) -> None:
                         **loc,
                         suggestion="Review: add keywords specific to this asset.",
                     )
-                    continue
-                keyword_sets[full] = row
+                else:
+                    keyword_sets[full] = row
             if len(keys) >= NEAR_DUPLICATE_PREFIX:
                 prefix = frozenset(keys[:NEAR_DUPLICATE_PREFIX])
                 if prefix in prefixes and prefixes[prefix][1] != full:

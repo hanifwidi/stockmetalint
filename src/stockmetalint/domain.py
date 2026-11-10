@@ -140,8 +140,12 @@ class Report:
         )
 
     def exit_code(self, *, fail_on_warning: bool = False) -> int:
-        """0 = no blocking findings, 1 = validation failure."""
-        if self.count(Severity.ERROR):
+        """0 = no blocking findings, 1 = validation failure.
+
+        A fatal report (content unreadable or not fully parsed) always fails, even
+        when the underlying rule was suppressed with ``--ignore``.
+        """
+        if self.fatal or self.count(Severity.ERROR):
             return 1
         if fail_on_warning and self.count(Severity.WARNING):
             return 1

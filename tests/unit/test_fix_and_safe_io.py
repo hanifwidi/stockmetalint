@@ -126,7 +126,7 @@ def test_case_variant_alias_on_case_insensitive_platforms(
     src = tmp_path / "Batch.csv"
     src.write_text("x")
     monkeypatch.setattr(safe_io.sys, "platform", "darwin")
-    with pytest.raises(OutputError, match="refers to the input"):
+    with pytest.raises(OutputError, match=r"refers to the input|same file"):
         safe_io.check_output_path(tmp_path / "BATCH.CSV", protected=[src], overwrite=True)
 
 

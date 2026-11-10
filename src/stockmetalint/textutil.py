@@ -80,7 +80,13 @@ def collapse_whitespace(text: str) -> str:
 
 def keyword_key(text: str) -> str:
     """Comparison key for duplicate detection: whitespace-collapsed and casefolded."""
-    return collapse_whitespace(text).casefold()
+    return unicodedata.normalize("NFC", collapse_whitespace(text).casefold())
+
+
+def is_visibly_blank(text: str) -> bool:
+    """True if *text* has nothing but whitespace, bidi controls or invisible characters."""
+    hidden = BIDI_CONTROLS | INVISIBLE_ALWAYS | JOINERS
+    return not "".join(ch for ch in text if ch not in hidden).strip()
 
 
 def keyword_key_nfkc(text: str) -> str:

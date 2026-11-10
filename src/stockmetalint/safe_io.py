@@ -34,6 +34,10 @@ def check_output_path(output: Path, *, protected: Sequence[Path], overwrite: boo
     if output.exists():
         if output.is_dir():
             raise OutputError(f"output path is a directory: {output}")
+        if not output.is_file():
+            raise OutputError(
+                f"output path is not a regular file (device, FIFO or socket): {output}"
+            )
         for item in protected:
             with contextlib.suppress(OSError):
                 if item.exists() and item.samefile(output):
@@ -71,6 +75,11 @@ def atomic_write_bytes(path: Path, data: bytes) -> None:
         if isinstance(exc, OSError):
             raise OutputError(f"cannot write {path}: {exc.strerror or exc}") from None
         raise
+
+
+def encode_text(text: str) -> bytes:
+    """UTF-8 encode; undecodable file-name bytes (lone surrogates) become visible escapes."""
+    return text.encode("utf-8", "backslashreplace")
 
 
 def sha256_bytes(data: bytes) -> str:

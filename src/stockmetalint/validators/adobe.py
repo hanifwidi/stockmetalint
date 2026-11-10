@@ -12,7 +12,7 @@ from pathlib import PurePath
 from typing import Any
 
 from stockmetalint.csv_input import ParsedCsv
-from stockmetalint.textutil import code_points, excerpt, nfc_length, utf16_units
+from stockmetalint.textutil import code_points, excerpt, is_visibly_blank, nfc_length, utf16_units
 from stockmetalint.validators.context import ColumnMap, LintContext, RowView
 
 _DRIVE_RE = re.compile(r"^[A-Za-z]:")
@@ -93,6 +93,9 @@ def map_header(ctx: LintContext, header: tuple[str, ...], header_line: int) -> C
     resolved: list[tuple[int, str, str | None]] = []
     for index, raw in enumerate(header):
         canonical = raw if raw in template else _canonical_for(raw, template)
+        if canonical is not None and raw != canonical and canonical in header:
+            # An exact header elsewhere owns this column; the near-miss is a separate column.
+            canonical = None
         resolved.append((index, raw, canonical))
 
     if not any(canonical for _, _, canonical in resolved):
@@ -196,7 +199,8 @@ def build_rows(ctx: LintContext, parsed: ParsedCsv, mapping: ColumnMap) -> list[
         if count != expected:
             if count > expected:
                 detail = (
-                    "content checks are skipped for this row. Unquoted commas inside Keywords are "
+                    "content checks are skipped for this row. Unquoted commas inside Keywords (or a space "
+                    "before an opening quote, which disables quoting) are "
                     "the usual cause"
                 )
                 tip = 'Wrap the whole keyword list in double quotes: "sky, sun, beach".'
@@ -264,7 +268,7 @@ def _portability_problems(value: str) -> list[str]:
 
 def check_filename(ctx: LintContext, row: RowView, value: str) -> None:
     loc: dict[str, Any] = {"line": row.line, "row": row.row, "column": "Filename"}
-    if not value.strip():
+    if is_visibly_blank(value):
         ctx.emit(
             "ADOBE-CSV-FILENAME-REQUIRED",
             "Filename is empty.",
@@ -333,7 +337,7 @@ def check_title(ctx: LintContext, row: RowView, value: str) -> None:
         "column": "Title",
         "filename": row.filename or None,
     }
-    if not value.strip():
+    if is_visibly_blank(value):
         ctx.emit(
             "ADOBE-CSV-TITLE-REQUIRED",
             "Title is empty.",
@@ -389,7 +393,7 @@ def check_category(ctx: LintContext, row: RowView, value: str) -> None:
             "seed list).",
         )
         return
-    number = int(text)
+    number = int(text) if len(text) <= 9 else -1
     if number not in ctx.registry.categories:
         low, high = min(ctx.registry.categories), max(ctx.registry.categories)
         ctx.emit(
