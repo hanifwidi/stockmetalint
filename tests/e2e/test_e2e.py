@@ -83,14 +83,19 @@ def test_5000_row_batch_is_fast_and_bounded(tmp_path: Path) -> None:
     src = tmp_path / "big.csv"
     src.write_bytes(csv_bytes(unique_rows(5000)))
     assert src.stat().st_size < 1_000_000
-    tracemalloc.start()
+    # Time and memory are measured in separate passes: tracemalloc itself slows
+    # allocation-heavy code several-fold, which would distort the timing budget.
     started = time.perf_counter()
     report = lint_path(src, LintOptions(reproducible=True))
     elapsed = time.perf_counter() - started
-    _, peak = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
     assert report.data_rows == 5000 and report.exit_code() == 0
     assert elapsed < 10, f"5,000 rows took {elapsed:.2f}s"
+    tracemalloc.start()
+    try:
+        lint_path(src, LintOptions(reproducible=True))
+        _, peak = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
     assert peak < 64 * 1024 * 1024, f"peak traced memory {peak} bytes"
 
 
